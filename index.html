@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Cycle Tracker — Calendar (v3 layout)</title>
+  <meta name="theme-color" content="#ff7a59"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <style>
+    :root{
+      --bg:#f7f7f8; --card:#fff; --text:#111; --muted:#667085; --border:#e6e6e6;
+      --period:#ffd6de; --fertile:#d6f5e3; --ovulation:#fff2b3; --luteal:#fdf1e3;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .container{max-width:960px;margin:0 auto;padding:16px}
+    h1{font-size:22px;margin:0 0 10px}
+    .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .muted{color:var(--muted);font-size:12px}
+    .big{font-size:32px;font-weight:800;line-height:1.05;margin:2px 0 0}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+    .stat{display:flex;flex-direction:column;gap:4px;min-width:0}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+    input,button{padding:10px 12px;border:1px solid var(--border);border-radius:10px}
+    input{width:100%;background:#fff}
+    button{background:#111;color:#fff;border:none;cursor:pointer}
+    button.secondary{background:#fff;color:#111;border:1px solid var(--border)}
+    .calendar-wrap{border:1px solid var(--border);border-radius:14px;overflow:hidden;display:flex;justify-content:center;align-items:center;padding:8px;background:#fff}
+    .flatpickr-calendar.inline{border:none;box-shadow:none;margin:0 auto}
+    .flatpickr-prev-month,.flatpickr-next-month{display:none!important}
+    .flatpickr-day.day-period{background:var(--period)!important}
+    .flatpickr-day.day-fertile{background:var(--fertile)!important}
+    .flatpickr-day.day-ovulation{background:var(--ovulation)!important;font-weight:700}
+    .flatpickr-day.day-luteal{background:var(--luteal)!important}
+    #calendar{position:absolute;left:-9999px;width:0;height:0;padding:0;margin:0;border:0;opacity:0}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:12px}
+    .dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:6px;border:1px solid rgba(0,0,0,.08)}
+    .right{text-align:right}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{text-align:left;padding:8px 6px;border-top:1px solid var(--border);vertical-align:middle}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Cycle Tracker — Calendar</h1>
+
+  <div class="card">
+    <div class="stats">
+      <div class="stat">
+        <div class="muted">Today</div>
+        <div id="today" class="big">—</div>
+        <div class="muted">Ovulation (best guess)</div>
+        <div id="ovulation" class="muted" style="padding:6px 10px;border:1px solid var(--border);border-radius:999px;display:inline-block"></div>
+      </div>
+      <div class="stat">
+        <div class="muted">Current phase</div>
+        <div id="phase" class="big">—</div>
+        <div id="phaseNote" class="muted"></div>
+        <div class="muted">Fertile window</div>
+        <div id="fertileWindow" class="muted" style="padding:6px 10px;border:1px solid var(--border);border-radius:999px;display:inline-block"></div>
+      </div>
+      <div class="stat">
+        <div class="muted">Next period (estimate)</div>
+        <div id="nextPeriod" class="big">—</div>
+        <div id="daysToNext" class="muted"></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="height:8px"></div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px">
+      <div style="font-weight:600">Calendar</div>
+      <div>
+        <button id="prevMonth" class="secondary">◀ Prev</button>
+        <button id="nextMonth" class="secondary">Next ▶</button>
+      </div>
+    </div>
+    <div class="calendar-wrap">
+      <input id="calendar" type="text"/>
+    </div>
+    <div class="legend">
+      <div><span class="dot" style="background:var(--period)"></span>Period</div>
+      <div><span class="dot" style="background:var(--fertile)"></span>Fertile window</div>
+      <div><span class="dot" style="background:var(--ovulation)"></span>Ovulation (best)</div>
+      <div><span class="dot" style="background:var(--luteal)"></span>Luteal</div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div style="flex:1 1 220px">
+        <div class="muted">Selected start</div>
+        <input type="text" id="selStart" readonly placeholder="Pick on calendar"/>
+      </div>
+      <div style="flex:1 1 220px">
+        <div class="muted">Selected end</div>
+        <input type="text" id="selEnd" readonly placeholder="Pick on calendar"/>
+      </div>
+      <div style="flex:0 0 160px">
+        <button id="addCycleBtn">Add cycle</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="secondary" id="exportBtn">Export JSON</button>
+      <button class="secondary" id="clearBtn">Clear all</button>
+    </div>
+  </div>
+
+  <div style="height:8px"></div>
+
+  <div class="card">
+    <div style="font-weight:600;margin-bottom:6px">Cycle history</div>
+    <div id="noRows" class="muted">No cycles yet.</div>
+    <table id="tbl" class="hidden">
+      <thead><tr><th>Start</th><th>End</th><th>Length (days)</th><th class="right">Actions</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+(function(){
+  const STORAGE_KEY="cycle-tracker-calendar-v3";
+  const $=(s)=>document.querySelector(s);
+
+  const todayEl=$("#today"), phaseEl=$("#phase"), phaseNote=$("#phaseNote");
+  const nextPeriodEl=$("#nextPeriod"), daysToNextEl=$("#daysToNext");
+  const ovulationEl=$("#ovulation"), fertileWindowEl=$("#fertileWindow");
+  const selStart=$("#selStart"), selEnd=$("#selEnd"), addCycleBtn=$("#addCycleBtn");
+  const exportBtn=$("#exportBtn"), clearBtn=$("#clearBtn");
+  const tbl=$("#tbl"), tbody=$("#tbody"), noRows=$("#noRows");
+  const prevMonthBtn=$("#prevMonth"), nextMonthBtn=$("#nextMonth");
+  const calendarWrap=document.querySelector(".calendar-wrap");
+
+  // local date helpers
+  function ymd(d){ const dt=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12); return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; }
+  function fromYmd(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d,12); }
+  function addDays(d,n){ const t=new Date(d.getFullYear(),d.getMonth(),d.getDate(),12); t.setDate(t.getDate()+n); return t; }
+  function diff(a,b){ return Math.round((fromYmd(a)-fromYmd(b))/(24*60*60*1000)); }
+  function nice(s){ return fromYmd(s).toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'}); }
+
+  let cycles=[];
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(cycles)); }
+  function load(){ try{ cycles=JSON.parse(localStorage.getItem(STORAGE_KEY))||[]; }catch{ cycles=[]; } }
+
+  function cycleLens(starts){ const out=[]; for(let i=1;i<starts.length;i++) out.push(diff(starts[i],starts[i-1])); return out; }
+  function median(arr){ if(!arr.length) return NaN; const s=[...arr].sort((a,b)=>a-b), m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
+  function params(){
+    if(!cycles.length) return null;
+    cycles.sort((a,b)=>a.start.localeCompare(b.start));
+    const starts=cycles.map(c=>c.start), lens=cycleLens(starts);
+    const med = lens.length? Math.round(median(lens)) : 28;
+    const lastStart=starts[starts.length-1];
+    const nextStart=ymd(addDays(fromYmd(lastStart), med));
+    const luteal=14;
+    const ovuBest=ymd(addDays(fromYmd(nextStart), -luteal));
+    const ovuMin=ymd(addDays(fromYmd(nextStart), -16));
+    const ovuMax=ymd(addDays(fromYmd(nextStart), -10));
+    const fertileStart=ymd(addDays(fromYmd(ovuBest), -5));
+    const fertileEnd=ymd(addDays(fromYmd(ovuBest), 1));
+    return {nextStart,ovuBest,ovuMin,ovuMax,fertileStart,fertileEnd};
+  }
+  function currentPhase(today,p){
+    if(!p) return {label:"—",note:"Add at least one cycle."};
+    const t = ymd(today);
+    const last = cycles.reduce((acc,c)=> (c.start<=t && c.start>(acc?acc.start:"0000-01-01"))? c : acc, null);
+    if(last && last.end && t>=last.start && t<=last.end) return {label:"Menstruation",note:`Cycle day ${diff(t,last.start)+1}`};
+    if(t>=p.fertileStart && t<=p.fertileEnd) return {label:"Fertile window",note:`Ovulation around ${nice(p.ovuBest)}`};
+    if(t<p.ovuBest) return {label:"Follicular",note:`Ovulation around ${nice(p.ovuBest)}`};
+    if(t>p.ovuBest && t<p.nextStart) return {label:"Luteal",note:`Next period ~ ${nice(p.nextStart)}`};
+    if(t>=p.nextStart) return {label:"New cycle expected",note:`If period hasn't started, predictions may be off.`};
+    return {label:"—",note:""};
+  }
+
+  let fp;
+  function highlight(inst){
+    if(!inst) return;
+    inst.config.onDayCreate=[function(_,__,___,d){ d.classList.remove("day-period","day-fertile","day-ovulation","day-luteal"); }];
+    const p=params();
+    if(p){
+      inst.config.onDayCreate.push(function(_,__,___,d){
+        const dYmd = ymd(d.dateObj);
+        const last = cycles[cycles.length-1];
+        if(last && last.end && dYmd>=last.start && dYmd<=last.end) d.classList.add("day-period");
+        if(dYmd>=p.fertileStart && dYmd<=p.fertileEnd) d.classList.add("day-fertile");
+        if(dYmd===p.ovuBest) d.classList.add("day-ovulation");
+        if(dYmd>p.ovuBest && dYmd<p.nextStart) d.classList.add("day-luteal");
+      });
+    }
+    inst.redraw();
+  }
+  function setupCalendar(){
+    if(fp) fp.destroy();
+    const ref=new Date();
+    fp = flatpickr("#calendar",{
+      inline:true, appendTo: calendarWrap, static:true, mode:"range", defaultDate:[], clickOpens:false,
+      onOpen:(_,__,inst)=>{ inst.clear(); inst.jumpToDate(ref); },
+      onReady:(_,__,inst)=>{ inst.clear(); inst.jumpToDate(ref); highlight(inst); attachSwipe(); },
+      onMonthChange:(_,__,inst)=>highlight(inst),
+      onYearChange:(_,__,inst)=>highlight(inst),
+      onChange:(sel)=>{
+        if(sel.length===2){
+          const a=ymd(sel[0]), b=ymd(sel[1]);
+          selStart.value=nice(a); selEnd.value=nice(b);
+        }
+      }
+    });
+  }
+  function attachSwipe(){
+    const cal=document.querySelector(".flatpickr-calendar"); if(!cal) return;
+    let sx=0,ex=0;
+    cal.addEventListener("touchstart",e=>{sx=e.changedTouches[0].screenX;},{passive:true});
+    cal.addEventListener("touchend",e=>{ex=e.changedTouches[0].screenX;const dx=ex-sx;if(Math.abs(dx)>50){if(dx<0)fp.changeMonth(1);else fp.changeMonth(-1);}},{passive:true});
+  }
+  prevMonthBtn.addEventListener("click",()=>fp&&fp.changeMonth(-1));
+  nextMonthBtn.addEventListener("click",()=>fp&&fp.changeMonth(1));
+
+  function renderHistory(){
+    cycles.sort((a,b)=>a.start.localeCompare(b.start));
+    tbody.innerHTML="";
+    if(!cycles.length){ tbl.classList.add("hidden"); noRows.classList.remove("hidden"); }
+    else{
+      tbl.classList.remove("hidden"); noRows.classList.add("hidden");
+      for(const c of cycles){
+        const len = c.end ? (diff(c.end,c.start)+1) : "";
+        const tr=document.createElement("tr");
+        tr.innerHTML=`<td>${nice(c.start)}</td><td>${c.end?nice(c.end):"—"}</td><td>${len}</td>
+                      <td class="right"><button class="secondary edit">Edit</button>
+                      <button class="secondary del">Delete</button></td>`;
+        tr.querySelector(".del").addEventListener("click",()=>{ cycles=cycles.filter(x=>!(x.start===c.start && (x.end||"")==(c.end||""))); save(); updateAll(); });
+        tr.querySelector(".edit").addEventListener("click",()=>{
+          tr.innerHTML=`<td><input type="date" class="s" value="${c.start}"></td>
+                        <td><input type="date" class="e" value="${c.end||""}"></td>
+                        <td>${len||""}</td>
+                        <td class="right"><button class="secondary save">Save</button>
+                        <button class="secondary cancel">Cancel</button></td>`;
+          tr.querySelector(".cancel").addEventListener("click",renderHistory);
+          tr.querySelector(".save").addEventListener("click",()=>{
+            const ns=tr.querySelector(".s").value, ne=tr.querySelector(".e").value;
+            if(!ns) return alert("Start required");
+            if(ne && fromYmd(ne)<fromYmd(ns)) return alert("End must be on/after start");
+            for(let i=0;i<cycles.length;i++){ if(cycles[i].start===c.start && (c.end||"")==(cycles[i].end||"")){ cycles[i]={start:ns,end:ne||null}; break; } }
+            save(); updateAll();
+          });
+        });
+        tbody.appendChild(tr);
+      }
+    }
+  }
+
+  function renderDashboard(){
+    const today=new Date();
+    todayEl.textContent=today.toLocaleDateString(undefined,{day:'numeric',month:'long',year:'numeric'});
+    const p=params();
+    if(!p){
+      phaseEl.textContent="—"; phaseNote.textContent="";
+      nextPeriodEl.textContent="—"; daysToNextEl.textContent="";
+      ovulationEl.textContent="—"; fertileWindowEl.textContent="—"; return;
+    }
+    nextPeriodEl.textContent=nice(p.nextStart);
+    const dtn=diff(p.nextStart, ymd(today));
+    daysToNextEl.textContent=(dtn>=0?`${dtn} day${dtn===1?"":"s"} to go`:`${-dtn} day${dtn===-1?"":"s"} late`);
+    ovulationEl.textContent=`${nice(p.ovuBest)} (≈ ${nice(p.ovuMin)}–${nice(p.ovuMax)})`;
+    fertileWindowEl.textContent=`${nice(p.fertileStart)} → ${nice(p.fertileEnd)}`;
+    const ph=currentPhase(today,p); phaseEl.textContent=ph.label; phaseNote.textContent=ph.note||"";
+  }
+
+  function updateAll(){ renderDashboard(); renderHistory(); setupCalendar(); }
+
+  addCycleBtn.addEventListener("click",()=>{
+    if(!selStart.value||!selEnd.value) return alert("Select start and end on the calendar");
+    const s=new Date(selStart.value), e=new Date(selEnd.value);
+    const ys=ymd(s), ye=ymd(e);
+    if(fromYmd(ye)<fromYmd(ys)) return alert("End must be on/after start");
+    cycles.push({start:ys,end:ye}); selStart.value=""; selEnd.value=""; save(); updateAll();
+  });
+  exportBtn.addEventListener("click",()=>{
+    const blob=new Blob([JSON.stringify(cycles,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob); const a=document.createElement("a");
+    a.href=url; a.download="cycles.json"; a.click(); URL.revokeObjectURL(url);
+  });
+  clearBtn.addEventListener("click",()=>{ if(confirm("Delete all data?")){ cycles=[]; save(); updateAll(); } });
+
+  load(); updateAll();
+})();
+</script>
+</body>
+</html>
