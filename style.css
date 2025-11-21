@@ -1,0 +1,486 @@
+/* Pure Black Luxury Theme - Final Polish */
+:root {
+  --bg: #050505;
+  /* Pure Black */
+  --card-bg: rgba(20, 20, 20, 0.8);
+  /* Darker, Glassy */
+  --card-border: rgba(255, 255, 255, 0.1);
+  --text: #FFFFFF;
+  --text-muted: #9E9E9E;
+  --accent: #E6B8B8;
+  /* Rose Gold */
+  --accent-dim: rgba(230, 184, 184, 0.2);
+  --danger: #E57373;
+
+  /* Phase Colors */
+  --period: #F48FB1;
+  /* Pink */
+  --fertile: #81C784;
+  /* Green */
+  --ovulation: #FFF176;
+  /* Yellow */
+  --luteal: #64B5F6;
+  /* Sky Blue - Distinct from Pink */
+
+  /* Text Color for Highlights */
+  --highlight-text: #000000;
+
+  /* Solid colors for dots/legend */
+  --period-solid: #F48FB1;
+  --fertile-solid: #81C784;
+  --ovulation-solid: #FFF176;
+  --luteal-solid: #64B5F6;
+
+  --font-heading: 'Futura', 'Trebuchet MS', Arial, sans-serif;
+  --font-body: 'Futura', 'Trebuchet MS', Arial, sans-serif;
+
+  --nav-height: 80px;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 500;
+  /* Futura Medium */
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: calc(var(--nav-height) + 20px);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: 0.5px;
+  font-variant-numeric: lining-nums;
+  /* Fix alignment */
+}
+
+h1 {
+  font-size: 28px;
+  color: var(--accent);
+  margin-bottom: 16px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--card-border);
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.big {
+  font-size: 32px;
+  font-family: var(--font-heading);
+  color: #fff;
+  margin: 4px 0;
+  font-variant-numeric: lining-nums;
+  /* Fix alignment */
+}
+
+/* Stats Grid */
+.stats {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.stat.full {
+  grid-column: span 2;
+}
+
+/* Buttons & Inputs */
+button {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+button:active {
+  transform: scale(0.96);
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+/* Icon Button */
+button.icon-btn {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+button.icon-btn:hover {
+  color: var(--danger);
+  background: rgba(229, 115, 115, 0.1);
+}
+
+button.icon-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--card-border);
+  color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Force hide the calendar input */
+#calendar {
+  display: none !important;
+}
+
+/* Calendar Overrides */
+.calendar-wrap {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+  /* Center the calendar */
+}
+
+.flatpickr-calendar {
+  background: transparent !important;
+  box-shadow: none !important;
+  width: 100% !important;
+  max-width: 320px;
+  /* Prevent it from stretching too wide */
+  margin: 0 auto !important;
+}
+
+/* HIDE ARROWS (The "Grey Box" Artifact) */
+.flatpickr-calendar::before,
+.flatpickr-calendar::after {
+  display: none !important;
+  content: none !important;
+}
+
+.flatpickr-innerContainer,
+.flatpickr-rContainer,
+.dayContainer {
+  width: 100% !important;
+  justify-content: center !important;
+}
+
+.flatpickr-day {
+  color: var(--text) !important;
+  border-radius: 50% !important;
+  margin: 2px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  line-height: 40px !important;
+  border: 1px solid transparent !important;
+}
+
+/* Soften Hover Effect */
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+  background: rgba(255, 255, 255, 0.1) !important;
+  /* Soft transparent white */
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
+/* HIDE Next/Prev Month Days */
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.flatpickr-day.flatpickr-disabled,
+.flatpickr-day.flatpickr-disabled:hover {
+  color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Fix "Stuck" Today Marker - Make it subtle */
+.flatpickr-day.today {
+  border-color: transparent !important;
+  /* Remove border */
+  color: var(--text) !important;
+  /* Standard white text */
+  font-weight: 400 !important;
+  /* Standard weight */
+}
+
+.flatpickr-day.today:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+}
+
+/* High Contrast for Selected/Highlighted Days */
+.flatpickr-day.selected,
+.flatpickr-day.startRange,
+.flatpickr-day.endRange,
+.flatpickr-day.selected.inRange,
+.flatpickr-day.startRange.inRange,
+.flatpickr-day.endRange.inRange,
+.flatpickr-day.selected:focus,
+.flatpickr-day.startRange:focus,
+.flatpickr-day.endRange:focus,
+.flatpickr-day.selected:hover,
+.flatpickr-day.startRange:hover,
+.flatpickr-day.endRange:hover {
+  background: var(--accent) !important;
+  color: var(--highlight-text) !important;
+  border-color: var(--accent) !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+/* Range In-Between */
+.flatpickr-day.inRange {
+  background: var(--accent-dim) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: -5px 0 0 var(--accent-dim), 5px 0 0 var(--accent-dim) !important;
+}
+
+.flatpickr-weekday {
+  color: var(--text-muted) !important;
+}
+
+.flatpickr-month {
+  color: #fff !important;
+  fill: #fff !important;
+}
+
+.flatpickr-current-month .flatpickr-monthDropdown-months {
+  color: #fff !important;
+}
+
+.flatpickr-current-month input.cur-year {
+  color: #fff !important;
+}
+
+/* Arrow Visibility Fix */
+.flatpickr-prev-month svg,
+.flatpickr-next-month svg {
+  fill: var(--accent) !important;
+  width: 14px;
+  height: 14px;
+}
+
+.flatpickr-prev-month:hover svg,
+.flatpickr-next-month:hover svg {
+  fill: #fff !important;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+/* Table */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--text);
+}
+
+th {
+  text-align: left;
+  color: var(--text-muted);
+  font-weight: 400;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+td {
+  padding: 16px 8px;
+  border-bottom: 1px solid var(--card-border);
+  font-size: 14px;
+}
+
+.right {
+  text-align: right;
+}
+
+/* Views & Navigation */
+.view {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.view.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: var(--nav-height);
+  background: rgba(5, 5, 5, 0.95);
+  /* Black nav */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 0.2s;
+  width: 80px;
+}
+
+.nav-item svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.nav-item.active {
+  color: var(--accent);
+}
+
+/* Utilities */
+.hidden {
+  display: none !important;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+}
+
+/* Phase Highlighting - EXTREME SPECIFICITY & FORCE - MOVED TO END */
+.flatpickr-day.day-period {
+  background: var(--period) !important;
+  color: var(--highlight-text) !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+/* New Predicted Period Style */
+.flatpickr-day.day-period-predicted {
+  background: transparent !important;
+  color: var(--period) !important;
+  border: 2px dotted var(--period) !important;
+  font-weight: 600 !important;
+}
+
+.flatpickr-day.day-fertile {
+  background: var(--fertile) !important;
+  color: var(--highlight-text) !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.flatpickr-day.day-ovulation {
+  background: var(--ovulation) !important;
+  color: var(--highlight-text) !important;
+  font-weight: 800 !important;
+  border: 2px solid var(--accent) !important;
+}
+
+.flatpickr-day.day-luteal {
+  background: var(--luteal) !important;
+  color: var(--highlight-text) !important;
+  border: none !important;
+}
