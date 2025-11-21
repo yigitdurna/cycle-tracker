@@ -129,8 +129,8 @@
 
   // --- Calendar ---
   let fp;
-  let savedMonth = new Date().getMonth();
-  let savedYear = new Date().getFullYear();
+  let savedMonth = null;
+  let savedYear = null;
 
   function getDayClasses(d) {
     const dYmd = ymd(d);
@@ -149,14 +149,16 @@
   }
 
   function setupCalendar() {
+    // Always refresh to current date unless calendar is being preserved during edit
+    const now = new Date();
+
     if (fp) {
       // If we are just refreshing the view (e.g. after edit), keep the user's position
       savedMonth = fp.currentMonth;
       savedYear = fp.currentYear;
       fp.destroy();
     } else {
-      // INITIAL LOAD: Always start at TODAY
-      const now = new Date();
+      // INITIAL LOAD: Always start at current month
       savedMonth = now.getMonth();
       savedYear = now.getFullYear();
     }
@@ -167,9 +169,9 @@
       inline: true,
       appendTo: calendarWrap,
       mode: "range",
-      defaultDate: [], // Never pre-select dates to avoid jumping
+      defaultDate: new Date(savedYear, savedMonth, 1), // Set default to saved date
       clickOpens: false,
-      // Restore view to savedMonth/Year (which is Today on load)
+      // Ensure calendar opens to savedMonth/Year
       onReady: (_, __, inst) => {
         inst.jumpToDate(new Date(savedYear, savedMonth, 1));
         attachSwipe();
@@ -453,7 +455,9 @@
       const targetId = item.dataset.target;
       document.getElementById(targetId).classList.add('active');
       if (targetId === 'home-view' && fp) {
-        setupCalendar();
+        // When returning to home view, jump to current month
+        const now = new Date();
+        fp.jumpToDate(new Date(now.getFullYear(), now.getMonth(), 1));
       }
     });
   });
