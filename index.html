@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Menstrual Cycle Tracker</title>
+  <meta name="theme-color" content="#262223" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.png" type="image/png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@400;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Libraries -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Menstrual Cycle Tracker</h1>
+
+    <!-- VIEW: HOME (Merged Dashboard + Calendar) -->
+    <div id="home-view" class="view active">
+
+      <!-- Quick Stats -->
+      <div class="card">
+        <div class="stats">
+          <div class="stat">
+            <div class="muted">Phase</div>
+            <div id="phase" class="big" style="font-size:24px">—</div>
+            <div id="phaseNote" class="muted" style="color:var(--accent); font-size:11px; margin-top:4px"></div>
+          </div>
+          <div class="stat">
+            <div class="muted">Next Period</div>
+            <div id="nextPeriod" class="big" style="font-size:24px">—</div>
+            <div id="daysToNext" class="muted" style="font-size:11px; margin-top:4px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar -->
+      <div class="card">
+
+
+        <div class="calendar-wrap">
+          <input id="calendar" type="hidden" />
+        </div>
+
+        <div class="legend">
+          <div><span class="dot" style="background:var(--period-solid)"></span>Period</div>
+          <div><span class="dot" style="background:var(--fertile-solid)"></span>Fertile</div>
+          <div><span class="dot" style="background:var(--ovulation-solid)"></span>Ovulation</div>
+          <div><span class="dot" style="background:var(--luteal-solid)"></span>Luteal</div>
+        </div>
+      </div>
+
+      <!-- Log Action -->
+      <div class="card">
+        <div class="row" style="align-items:center">
+          <div style="flex:1">
+            <div class="muted" style="margin-bottom:4px">Log Cycle</div>
+            <div id="logInstr" style="font-size:13px; color:var(--text-muted)">Select dates on calendar</div>
+          </div>
+          <div style="display:flex; gap:8px">
+            <button id="cancelEditBtn" class="secondary" style="display:none; padding:10px">Cancel</button>
+            <button id="addCycleBtn" style="padding:10px 20px">Log Period</button>
+          </div>
+        </div>
+        <div class="row" style="margin-top:12px; display:none" id="selectionRow">
+          <input type="text" id="selStart" readonly placeholder="Start" />
+          <input type="text" id="selEnd" readonly placeholder="End" />
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW: HISTORY -->
+    <div id="history-view" class="view">
+      <div class="card">
+        <h2 style="font-size:18px; margin-bottom:16px">History</h2>
+        <div id="noRows" class="muted" style="text-align:center; padding:20px">No cycles logged yet.</div>
+        <table id="tbl" class="hidden">
+          <thead>
+            <tr>
+              <th>Start</th>
+              <th>End</th>
+              <th>Days</th>
+              <th class="right"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2 style="font-size:18px; margin-bottom:16px">Data</h2>
+        <div class="row">
+          <button class="secondary" id="exportBtn" style="flex:1">Export JSON</button>
+          <button class="secondary" id="exportCsvBtn" style="flex:1">Export CSV</button>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="secondary" id="importCsvBtn" style="flex:1">Import CSV</button>
+          <button class="secondary" id="clearBtn" style="flex:1; border-color:var(--danger); color:var(--danger)">Clear
+            All</button>
+        </div>
+        <input type="file" id="csvInput" accept=".csv" style="display:none" />
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAVIGATION -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" data-target="home-view">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" />
+      </svg>
+      <span>Home</span>
+    </div>
+    <div class="nav-item" data-target="history-view">
+      <svg viewBox="0 0 24 24">
+        <path
+          d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z" />
+      </svg>
+      <span>History</span>
+    </div>
+    <div style="position:absolute; bottom:2px; right:4px; font-size:9px; color:#444; pointer-events:none;">v6.0</div>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
