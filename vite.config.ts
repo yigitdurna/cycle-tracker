@@ -14,8 +14,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
       manifest: {
-        name: 'Cycle Vault',
-        short_name: 'Cycle Vault',
+        name: 'cycle vault',
+        short_name: 'cycle vault',
         start_url: '/cycle-tracker/',
         display: 'standalone',
         background_color: '#0A0A0A',

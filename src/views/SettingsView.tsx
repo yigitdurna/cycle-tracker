@@ -180,7 +180,7 @@ export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, o
       </div>
 
       {/* Version */}
-      <p className="text-center text-xs text-white/20 pt-4">Cycle Vault</p>
+      <p className="text-center text-xs text-white/20 pt-4">cycle vault</p>
 
       <ConfirmDialog
         open={clearConfirm}

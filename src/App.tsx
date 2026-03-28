@@ -51,7 +51,7 @@ export default function App() {
 
   const { allLogs, todayLog, setLog, clearAllLogs } = useDayLogs();
 
-  const { getPhaseDescription, todayInsights } = useInsights(allLogs, cycles, todayLog);
+  const { getPhaseDescription, todayInsights, insights, hasEnoughData } = useInsights(allLogs, cycles, todayLog);
 
   const handleUpdateLog = (partial: Partial<DayLog>) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -62,7 +62,7 @@ export default function App() {
 
   const shareSummary = useMemo(() => {
     if (!cycles.length) return undefined;
-    const parts: string[] = ['Cycle Vault Summary'];
+    const parts: string[] = ['cycle vault summary'];
     if (cycleDay) parts.push(`Cycle day: ${cycleDay}`);
     if (todayPhase) parts.push(`Phase: ${phaseTypeToUI(todayPhase.type)}`);
     if (nextPeriod) parts.push(`Next period: in ${nextPeriod.daysToNext} day${nextPeriod.daysToNext === 1 ? '' : 's'}`);
@@ -153,6 +153,8 @@ export default function App() {
               todayLog={todayLog}
               onUpdateLog={handleUpdateLog}
               todayInsights={todayInsights}
+              insights={insights}
+              hasEnoughData={hasEnoughData}
               getPhaseDescription={getPhaseDescription}
             />
           )}
