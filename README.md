@@ -1,41 +1,61 @@
-# Cycle Vault
+# cycle vault
 
 **[Live Demo](https://yigitdurna.github.io/cycle-tracker/)**
 
-A privacy-focused menstrual cycle tracking app built with React, TypeScript, and Tailwind CSS. Features accurate phase predictions, an animated UI with phase-based color themes, and complete data privacy — all data stays on your device.
+A privacy-focused menstrual cycle tracking PWA built with React, TypeScript, and Tailwind CSS. All data stays on your device — no accounts, no servers, no tracking.
 
 ## Features
 
 - **Phase-Based UI**: Background gradients, ring color, and insights shift automatically across Menstrual, Follicular, Ovulation, and Luteal phases.
-- **Smart Predictions**: Median-based cycle length calculation with fertile window, ovulation, and next period predictions.
-- **Interactive Calendar**: Custom calendar grid with phase-colored days, swipe navigation, and period logging via range selection.
-- **Privacy First**: All data stored locally in the browser. No servers, no tracking, no accounts.
-- **Data Portability**: JSON and CSV export/import for backups and analysis.
-- **PWA**: Installable, works offline, app-like experience.
+- **Smart Predictions**: Median-based cycle length calculation with fertile window, ovulation, and next period predictions backed by published research (Bull et al. 2019).
+- **Daily Symptom Logging**: Track mood, flow, energy, cramps, pain, and sleep. Notes are timestamped and appended, not overwritten.
+- **Personalized Insights**: Pattern recognition surfaces recurring symptoms by phase after enough cycles are logged.
+- **Interactive Calendar**: Phase-colored day grid with swipe navigation and per-day symptom logging.
+- **Privacy First**: All data stored locally in `localStorage`. No network requests, no analytics.
+- **Data Portability**: JSON (full backup including symptoms) and CSV export/import.
+- **PWA**: Installable on iOS and Android, works fully offline.
 
 ## Tech Stack
 
 - React 19 + TypeScript
-- Vite
+- Vite + vite-plugin-pwa
 - Tailwind CSS v4
 - Motion (animations)
 - Lucide React (icons)
 - date-fns (calendar math)
-- vite-plugin-pwa (offline support)
+- Vitest (unit tests)
 
 ## Development
 
 ```bash
 npm install
 npm run dev       # dev server on port 3000
+npm test          # run unit tests
 npm run build     # production build
 npm run lint      # type check
 ```
 
+## Architecture
+
+```
+src/
+├── lib/
+│   ├── cycle-math.ts   # pure prediction engine (fully unit-tested)
+│   ├── insights.ts     # pattern analysis from symptom logs
+│   └── __tests__/      # Vitest test suites
+├── hooks/
+│   ├── useCycles.ts    # cycle CRUD + localStorage persistence
+│   ├── useDayLogs.ts   # symptom log persistence with history snapshots
+│   └── useSettings.ts  # user preferences (custom cycle length)
+├── views/              # Home, Calendar, History, Settings
+└── components/         # presentational components
+```
+
 ## Usage
 
-1. **Log a Period**: Tap the + button, select start and end dates, tap "Log Period".
-2. **View Phases**: Home screen shows current cycle day, phase, and next period countdown.
-3. **Calendar**: Browse months with phase-colored day indicators.
-4. **Edit/Delete**: History tab shows all logged cycles with edit and delete options.
-5. **Export/Import**: Settings tab for JSON/CSV backup and restore.
+1. **Log a Period**: Tap the + button, select start and end dates.
+2. **Track Symptoms**: Tap pills on the home screen to log mood, flow, energy, cramps, and notes.
+3. **View Phases**: Home screen shows current cycle day, phase, and next period countdown.
+4. **Calendar**: Browse months with phase-colored day indicators and per-day symptom detail.
+5. **Insights**: After a few cycles, the app surfaces your personal symptom patterns.
+6. **Export/Import**: Settings tab for JSON/CSV backup and restore.

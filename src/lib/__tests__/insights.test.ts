@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Insight, PhaseSymptomPattern, CycleLengthAlert, Cycle, DayLogs } from '../../types';
-import { getPhaseForDay, getPhaseSymptomPatterns, getCycleLengthAlert, getPersonalizedPhaseDescription, generateInsights } from '../insights';
+import { getPhaseForDay, getPhaseSymptomPatterns, getCycleLengthAlert, getPersonalizedPhaseDescription, generateInsights, getTodayInsights } from '../insights';
 
 describe('Insight types', () => {
   it('Insight type has required shape', () => {
@@ -116,12 +116,45 @@ describe('getPhaseSymptomPatterns', () => {
 });
 
 describe('getCycleLengthAlert', () => {
-  it('returns null when fewer than 3 cycles', () => {
+  it('returns null when fewer than 4 cycles (2 cycles)', () => {
     const cycles: Cycle[] = [
       { start: '2026-01-01', end: '2026-01-05' },
       { start: '2026-01-29', end: '2026-02-02' },
     ];
     expect(getCycleLengthAlert(cycles)).toBeNull();
+  });
+
+  it('returns null when exactly 3 cycles (requires >= 4)', () => {
+    const cycles: Cycle[] = [
+      { start: '2026-01-01', end: '2026-01-05' },
+      { start: '2026-01-29', end: '2026-02-02' },
+      { start: '2026-02-26', end: '2026-03-02' },
+    ];
+    expect(getCycleLengthAlert(cycles)).toBeNull();
+  });
+
+  it('returns null when deviation is exactly 3 days (threshold is > 3)', () => {
+    // lengths = [28, 28, 31]: historical median = 28, current = 31, deviation = +3
+    const cycles: Cycle[] = [
+      { start: '2026-01-01', end: '2026-01-05' },
+      { start: '2026-01-29', end: '2026-02-02' }, // +28
+      { start: '2026-02-26', end: '2026-03-02' }, // +28
+      { start: '2026-03-29', end: '2026-04-02' }, // +31
+    ];
+    expect(getCycleLengthAlert(cycles)).toBeNull();
+  });
+
+  it('returns alert when deviation is exactly 4 days (just past threshold)', () => {
+    // lengths = [28, 28, 32]: historical median = 28, current = 32, deviation = +4
+    const cycles: Cycle[] = [
+      { start: '2026-01-01', end: '2026-01-05' },
+      { start: '2026-01-29', end: '2026-02-02' }, // +28
+      { start: '2026-02-26', end: '2026-03-02' }, // +28
+      { start: '2026-03-30', end: '2026-04-03' }, // +32
+    ];
+    const alert = getCycleLengthAlert(cycles);
+    expect(alert).not.toBeNull();
+    expect(alert!.deviation).toBe(4);
   });
 
   it('returns null when cycle length is within ±3 days of median', () => {
@@ -265,5 +298,86 @@ describe('generateInsights', () => {
     for (let i = 1; i < insights.length; i++) {
       expect(insights[i].confidence).toBeLessThanOrEqual(insights[i - 1].confidence);
     }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getTodayInsights
+// ---------------------------------------------------------------------------
+
+describe('getTodayInsights', () => {
+  const cycles: Cycle[] = [
+    { start: '2026-01-01', end: '2026-01-05' },
+    { start: '2026-01-29', end: '2026-02-02' },
+    { start: '2026-02-26', end: '2026-03-02' },
+  ];
+
+  it('always includes the phase tip as the first insight', () => {
+    const insights = getTodayInsights(undefined, {}, [], 'Follicular');
+    expect(insights.length).toBeGreaterThanOrEqual(1);
+    expect(insights[0].id).toBe('today-phase-tip');
+    expect(insights[0].category).toBe('prediction');
+  });
+
+  it('returns only the phase tip when fewer than 2 cycles', () => {
+    const insights = getTodayInsights(undefined, {}, [cycles[0]], 'Follicular');
+    expect(insights.length).toBe(1);
+    expect(insights[0].id).toBe('today-phase-tip');
+  });
+
+  it('adds a heads-up card when a symptom appears in >= 50% of phase days', () => {
+    // 8 menstrual days logged, cramps present on 6 → frequency = 0.75 >= 0.5
+    const logs: DayLogs = {
+      '2026-01-01': { date: '2026-01-01', cramps: 2 },
+      '2026-01-02': { date: '2026-01-02', cramps: 1 },
+      '2026-01-03': { date: '2026-01-03', cramps: 3 },
+      '2026-01-04': { date: '2026-01-04' },           // no cramps
+      '2026-01-29': { date: '2026-01-29', cramps: 2 },
+      '2026-01-30': { date: '2026-01-30', cramps: 1 },
+      '2026-01-31': { date: '2026-01-31', cramps: 2 },
+      '2026-02-01': { date: '2026-02-01' },           // no cramps
+    };
+    const insights = getTodayInsights(undefined, logs, cycles, 'Menstrual');
+    expect(insights.some(i => i.id === 'today-heads-up')).toBe(true);
+  });
+
+  it('does not add a heads-up card when no symptom reaches 50% frequency', () => {
+    // 4 logged menstrual days, cramps on only 1 → frequency = 0.25 < 0.5
+    const logs: DayLogs = {
+      '2026-01-01': { date: '2026-01-01', cramps: 2 },
+      '2026-01-02': { date: '2026-01-02' },
+      '2026-01-03': { date: '2026-01-03' },
+      '2026-01-04': { date: '2026-01-04' },
+    };
+    const insights = getTodayInsights(undefined, logs, cycles, 'Menstrual');
+    expect(insights.some(i => i.id === 'today-heads-up')).toBe(false);
+  });
+
+  it('adds an anomaly card when todayLog contains a historically rare symptom', () => {
+    // 5 logged menstrual days, energy on only 1 → frequency = 0.2 < 0.25
+    // totalDaysInPhase = 5 >= 3 → anomaly threshold met
+    const logs: DayLogs = {
+      '2026-01-01': { date: '2026-01-01', energy: 2 }, // has energy
+      '2026-01-02': { date: '2026-01-02' },
+      '2026-01-03': { date: '2026-01-03' },
+      '2026-01-04': { date: '2026-01-04' },
+      '2026-01-05': { date: '2026-01-05' },
+    };
+    // Today: user logs energy in Menstrual — historically rare for them
+    const todayLog = { date: '2026-01-29', energy: 1 as const };
+    const insights = getTodayInsights(todayLog, logs, cycles, 'Menstrual');
+    expect(insights.some(i => i.id === 'today-unusual')).toBe(true);
+  });
+
+  it('does not add an anomaly card when no todayLog is provided', () => {
+    const logs: DayLogs = {
+      '2026-01-01': { date: '2026-01-01', energy: 2 },
+      '2026-01-02': { date: '2026-01-02' },
+      '2026-01-03': { date: '2026-01-03' },
+      '2026-01-04': { date: '2026-01-04' },
+      '2026-01-05': { date: '2026-01-05' },
+    };
+    const insights = getTodayInsights(undefined, logs, cycles, 'Menstrual');
+    expect(insights.some(i => i.id === 'today-unusual')).toBe(false);
   });
 });
