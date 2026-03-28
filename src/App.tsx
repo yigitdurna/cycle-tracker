@@ -112,7 +112,6 @@ export default function App() {
         <header className="flex items-center justify-between mb-12">
           <div>
             <h1 className="text-2xl font-serif font-bold italic">Cycle Tracker</h1>
-            <p className="text-xs text-white/40 uppercase tracking-widest mt-1">Premium Insights</p>
           </div>
           <button
             onClick={handleSettingsToggle}
