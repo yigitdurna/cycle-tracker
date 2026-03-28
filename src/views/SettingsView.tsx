@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { motion } from 'motion/react';
-import { Download, Upload, Trash2, FileJson, FileSpreadsheet, Shield, Share2, RefreshCw } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Download, Upload, Trash2, FileJson, FileSpreadsheet, Shield, Share2, RefreshCw, Check } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import type { Cycle } from '../types';
 
@@ -22,6 +22,32 @@ export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, o
   const [importMsg, setImportMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
+
+  // Cycle length input — raw string to avoid mid-type clamping
+  const [cycleLengthInput, setCycleLengthInput] = useState(customCycleLength?.toString() ?? '');
+  const [cycleSaved, setCycleSaved] = useState(false);
+  const cycleSavedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Keep input in sync if parent resets the value
+  useEffect(() => {
+    setCycleLengthInput(customCycleLength?.toString() ?? '');
+  }, [customCycleLength]);
+
+  const isCycleDirty = cycleLengthInput !== (customCycleLength?.toString() ?? '');
+
+  const saveCycleLength = useCallback(() => {
+    const v = parseInt(cycleLengthInput, 10);
+    if (cycleLengthInput === '') {
+      onSetCycleLength(undefined);
+    } else if (!isNaN(v)) {
+      const clamped = Math.min(60, Math.max(15, v));
+      setCycleLengthInput(clamped.toString());
+      onSetCycleLength(clamped);
+    }
+    setCycleSaved(true);
+    clearTimeout(cycleSavedTimer.current);
+    cycleSavedTimer.current = setTimeout(() => setCycleSaved(false), 2000);
+  }, [cycleLengthInput, onSetCycleLength]);
 
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,28 +98,54 @@ export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, o
                 type="number"
                 min={15}
                 max={60}
-                value={customCycleLength ?? ''}
-                onChange={e => {
-                  const raw = e.target.value;
-                  if (raw === '') { onSetCycleLength(undefined); return; }
-                  const v = parseInt(raw, 10);
-                  if (!isNaN(v)) onSetCycleLength(Math.min(60, Math.max(15, v)));
-                }}
+                value={cycleLengthInput}
+                onChange={e => setCycleLengthInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && saveCycleLength()}
                 placeholder="28"
                 className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-1.5 text-sm text-center text-white/80 focus:outline-none focus:border-accent/40"
               />
               <span className="text-xs text-white/40">days</span>
             </div>
           </div>
-          {customCycleLength && (
-            <button
-              onClick={() => onSetCycleLength(undefined)}
-              className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors"
-            >
-              <RefreshCw size={12} />
-              Reset to default (28)
-            </button>
-          )}
+
+          {/* Save / Saved feedback */}
+          <div className="flex items-center justify-between">
+            <AnimatePresence mode="wait">
+              {cycleSaved ? (
+                <motion.div
+                  key="saved"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  transition={{ duration: 0.25 }}
+                  className="flex items-center gap-1.5 text-accent/70 text-xs font-medium"
+                >
+                  <Check size={13} />
+                  Saved
+                </motion.div>
+              ) : isCycleDirty ? (
+                <motion.button
+                  key="save-btn"
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={saveCycleLength}
+                  className="px-4 py-1.5 rounded-full bg-accent/20 border border-accent/40 text-xs font-medium text-white hover:bg-accent/30 transition-colors"
+                >
+                  Save
+                </motion.button>
+              ) : customCycleLength ? (
+                <button
+                  onClick={() => { onSetCycleLength(undefined); setCycleLengthInput(''); }}
+                  className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors"
+                >
+                  <RefreshCw size={12} />
+                  Reset to default (28)
+                </button>
+              ) : <span />}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
