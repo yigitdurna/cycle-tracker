@@ -2,9 +2,8 @@ import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
-import { nice, diff } from '../lib/cycle-math';
+import { nice, diff, fromYmd } from '../lib/cycle-math';
 import type { Cycle } from '../types';
-import { fromYmd } from '../lib/cycle-math';
 
 interface HistoryViewProps {
   cycles: Cycle[];

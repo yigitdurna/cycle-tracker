@@ -17,18 +17,12 @@ import type { Cycle, DayLog } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
-  const [prevTab, setPrevTab] = useState<Tab>('home');
   const [logSheetOpen, setLogSheetOpen] = useState(false);
   const [editingCycle, setEditingCycle] = useState<Cycle | null>(null);
 
   const handleTabChange = (tab: Tab) => {
     if (tab === activeTab) {
-      // Clicking active tab returns to home
       setActiveTab('home');
-    } else if (tab === 'settings') {
-      // Remember where we were before settings
-      setPrevTab(activeTab);
-      setActiveTab('settings');
     } else {
       setActiveTab(tab);
     }

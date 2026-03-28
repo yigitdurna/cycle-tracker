@@ -187,21 +187,19 @@ export function useCycles(defaultCycleLength = 28) {
         }
 
         if (parsed.length > 0) {
+          // Pre-compute merge using current cycles snapshot so count is
+          // ready before resolve() fires (React 18 batches the updater).
           let count = 0;
-          persist(prev => {
-            let merged = [...prev];
-            for (const c of parsed) {
-              // Remove any existing cycle that overlaps with the imported one
-              // (imported data is treated as the source of truth)
-              const hadOverlap = merged.some(existing => cyclesOverlap(existing, c));
-              merged = merged.filter(existing => !cyclesOverlap(existing, c));
-              if (hadOverlap || !merged.some(existing => existing.start === c.start)) {
-                merged.push(c);
-                count++;
-              }
+          let precomputed: Cycle[] = [...cycles];
+          for (const c of parsed) {
+            const hadOverlap = precomputed.some(existing => cyclesOverlap(existing, c));
+            precomputed = precomputed.filter(existing => !cyclesOverlap(existing, c));
+            if (hadOverlap || !precomputed.some(existing => existing.start === c.start)) {
+              precomputed.push(c);
+              count++;
             }
-            return merged;
-          });
+          }
+          persist(() => precomputed);
           resolve(count);
         } else {
           resolve(0);
@@ -223,21 +221,18 @@ export function useCycles(defaultCycleLength = 28) {
 
           let count = 0;
           if (importedCycles.length > 0) {
-            persist(prev => {
-              let merged = [...prev];
-              for (const c of importedCycles) {
-                if (!c.start || !/^\d{4}-\d{2}-\d{2}$/.test(c.start)) continue;
-                const incoming: Cycle = { start: c.start, end: c.end || null };
-                // Remove any existing cycle that overlaps with the imported one
-                const hadOverlap = merged.some(existing => cyclesOverlap(existing, incoming));
-                merged = merged.filter(existing => !cyclesOverlap(existing, incoming));
-                if (hadOverlap || !merged.some(existing => existing.start === c.start)) {
-                  merged.push(incoming);
-                  count++;
-                }
+            let precomputed: Cycle[] = [...cycles];
+            for (const c of importedCycles) {
+              if (!c.start || !/^\d{4}-\d{2}-\d{2}$/.test(c.start)) continue;
+              const incoming: Cycle = { start: c.start, end: c.end || null };
+              const hadOverlap = precomputed.some(existing => cyclesOverlap(existing, incoming));
+              precomputed = precomputed.filter(existing => !cyclesOverlap(existing, incoming));
+              if (hadOverlap || !precomputed.some(existing => existing.start === c.start)) {
+                precomputed.push(incoming);
+                count++;
               }
-              return merged;
-            });
+            }
+            persist(() => precomputed);
           }
           resolve({ cycles: count, dayLogs: importedLogs });
         } catch {
