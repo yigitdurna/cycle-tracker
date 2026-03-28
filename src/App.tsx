@@ -182,7 +182,7 @@ export default function App() {
               key="settings"
               cycles={cycles}
               onExportJSON={() => exportJSON(allLogs)}
-              onExportCSV={exportCSV}
+              onExportCSV={() => exportCSV(allLogs)}
               onImportCSV={importCSV}
               onImportJSON={async (file) => {
                 const result = await importJSON(file);

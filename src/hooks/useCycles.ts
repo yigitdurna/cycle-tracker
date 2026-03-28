@@ -95,16 +95,50 @@ export function useCycles() {
     URL.revokeObjectURL(url);
   }, [cycles]);
 
-  const exportCSV = useCallback(() => {
-    if (!cycles.length) return;
-    const headers = ['Start Date,End Date'];
-    const rows = cycles.map(c => `${c.start},${c.end || ''}`);
-    const csvContent = headers.concat(rows).join('\n');
+  const exportCSV = useCallback((dayLogs: DayLogs = {}) => {
+    const logDates = Object.keys(dayLogs).sort();
+    const hasDayLogs = logDates.length > 0;
+
+    // Properly escape a CSV cell value
+    const esc = (v: string) =>
+      v.includes(',') || v.includes('"') || v.includes('\n')
+        ? '"' + v.replace(/"/g, '""') + '"'
+        : v;
+
+    let csvContent: string;
+    let filename: string;
+
+    if (hasDayLogs) {
+      const header = 'Date,Period Start,Period End,Flow,Mood,Energy,Cramps,Pain Locations,Pain Severity,Affected My Day,Note';
+      const rows = logDates.map(date => {
+        const log = dayLogs[date];
+        const cycle = cycles.find(c => c.start <= date && (!c.end || c.end >= date));
+        const flow = log.flow ?? '';
+        const mood = log.mood?.join('; ') ?? '';
+        const energy = log.energy != null ? ['Low', 'Moderate', 'High'][log.energy - 1] : '';
+        const cramps = log.cramps != null ? ['Mild', 'Moderate', 'Severe'][log.cramps - 1] : '';
+        const painLocs = log.pain?.locations.join('; ') ?? '';
+        const painSev = log.pain != null ? ['Mild', 'Moderate', 'Severe'][log.pain.severity - 1] : '';
+        const impact = log.functionalImpact === true ? 'Yes' : log.functionalImpact === false ? 'No' : '';
+        const note = log.note ? esc(log.note) : '';
+        return [date, cycle?.start ?? '', cycle?.end ?? '', flow, mood, energy, cramps, painLocs, painSev, impact, note].join(',');
+      });
+      csvContent = [header, ...rows].join('\n');
+      filename = 'cycle-vault-symptoms.csv';
+    } else {
+      // No symptom data logged — fall back to cycle dates only
+      if (!cycles.length) return;
+      const header = 'Start Date,End Date';
+      const rows = cycles.map(c => `${c.start},${c.end || ''}`);
+      csvContent = [header, ...rows].join('\n');
+      filename = 'cycle-vault-cycles.csv';
+    }
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cycles.csv';
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   }, [cycles]);
