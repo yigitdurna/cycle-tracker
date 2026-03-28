@@ -84,7 +84,9 @@ const DEVIATION_THRESHOLD = 3; // days
  * (need at least 2 lengths to compute a median, then 1 to compare).
  */
 export function getCycleLengthAlert(cycles: Cycle[]): CycleLengthAlert | null {
-  if (cycles.length < 3) return null;
+  // Need >= 4 cycles: 3 lengths to compute a stable median, 1 to compare against.
+  // 3 cycles only gives 1 historical data point — statistically meaningless.
+  if (cycles.length < 4) return null;
 
   const sorted = [...cycles].sort((a, b) => a.start.localeCompare(b.start));
   const starts = sorted.map(c => c.start);
@@ -192,12 +194,15 @@ export function generateInsights(
 
   // 1. Phase-symptom patterns → pattern insights
   const patterns = getPhaseSymptomPatterns(logs, cycles);
+  // Deduplicate by (symptom + phase) so luteal cramps and menstrual cramps
+  // each get their own card instead of the lower-frequency one being dropped.
   const seen = new Set<string>();
 
   for (const p of patterns) {
-    if (seen.has(p.symptom)) continue;
+    const key = `${p.symptom}|${p.phase}`;
+    if (seen.has(key)) continue;
     if (p.frequency < MIN_FREQUENCY_FOR_INSIGHT) continue;
-    seen.add(p.symptom);
+    seen.add(key);
 
     const pct = Math.round(p.frequency * 100);
     const label = SYMPTOM_LABELS[p.symptom] || p.symptom;
@@ -309,6 +314,7 @@ export function getTodayInsights(
     if (todayLog.energy) loggedSymptoms.push('energy');
     if (todayLog.flow) loggedSymptoms.push('flow');
     if (todayLog.pain) loggedSymptoms.push('pain');
+    if (todayLog.sleep) loggedSymptoms.push('sleep');
 
     for (const sym of loggedSymptoms) {
       const pattern = patterns.find(p => p.symptom === sym && p.phase === phase);

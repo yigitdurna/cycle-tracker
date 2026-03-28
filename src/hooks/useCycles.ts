@@ -45,10 +45,8 @@ function loadCycles(): Cycle[] {
   try {
     const raw: Cycle[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     const clean = sanitizeCycles(raw);
-    // Persist the cleaned version so corrupted data is repaired immediately
-    if (clean.length !== raw.length) {
-      saveCycles(clean);
-    }
+    // Always persist — sanitizeCycles also sorts, so even a reorder needs saving
+    saveCycles(clean);
     return clean;
   } catch {
     return [];

@@ -54,7 +54,8 @@ export function useDayLogs() {
 
     persist(prev => {
       const existing = prev[date];
-      const history = [...(existing?.history ?? []), snapshot];
+      // Keep the last 20 snapshots — prevents unbounded localStorage growth
+      const history = [...(existing?.history ?? []), snapshot].slice(-20);
       return { ...prev, [date]: { ...sanitized, history } };
     });
   }, [persist]);

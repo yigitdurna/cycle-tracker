@@ -183,9 +183,9 @@ export function getNextPeriodDate(cycles: Cycle[]): { date: string; daysToNext: 
   const cyclesPassed = Math.floor(daysSinceAnchor / stats.med);
   const nextCycleNum = cyclesPassed + 1;
 
-  // For very long/irregular cycles (median > 45), only predict the immediate next
-  const maxCyclesAhead = stats.med > 45 ? 1 : nextCycleNum;
-  const nextStart = ymd(addDays(fromYmd(anchorStart), maxCyclesAhead * stats.med));
+  // Always use the actual next cycle number so prediction stays ahead of today,
+  // even for long/irregular cycles where median > 45 days.
+  const nextStart = ymd(addDays(fromYmd(anchorStart), nextCycleNum * stats.med));
 
   if (nextStart <= todayYmd) return null;
 
