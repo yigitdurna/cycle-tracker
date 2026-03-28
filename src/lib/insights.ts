@@ -109,12 +109,12 @@ export function getCycleLengthAlert(cycles: Cycle[]): CycleLengthAlert | null {
 
   if (Math.abs(deviation) <= DEVIATION_THRESHOLD) return null;
 
-  const direction = deviation > 0 ? 'longer' : 'shorter';
+  const direction = deviation > 0 ? 'late' : 'early';
   return {
     currentLength,
     medianLength: Math.round(median),
     deviation,
-    message: `Your last cycle was ${Math.abs(deviation)} days ${direction} than usual (${currentLength} vs ${Math.round(median)} days).`,
+    message: `Your last period arrived ${Math.abs(deviation)} days ${direction} (cycle was ${currentLength} days vs your usual ${Math.round(median)}).`,
   };
 }
 
@@ -221,7 +221,7 @@ export function generateInsights(
     insights.push({
       id: `cycle-len-${idCounter++}`,
       category: 'cycle-length',
-      title: 'Cycle length changed',
+      title: alert.deviation > 0 ? 'Period arrived late' : 'Period arrived early',
       description: alert.message,
       confidence: Math.min(1, 0.5 + Math.abs(alert.deviation) / 20),
     });
