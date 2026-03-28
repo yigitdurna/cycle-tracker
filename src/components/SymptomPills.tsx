@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Smile, Zap, Flame, Droplets, Activity, MessageSquare, Check } from 'lucide-react';
+import { Smile, Zap, Flame, Droplets, Activity, MessageSquare, Check, X } from 'lucide-react';
 import type { DayLog, MoodValue, Severity, FlowLevel } from '../types';
 
 interface SymptomPillsProps {
@@ -296,7 +296,14 @@ export function SymptomPills({ log, onUpdate }: SymptomPillsProps) {
           <div className="glass rounded-xl px-3 py-2">
             <div className="flex items-start gap-2">
               <MessageSquare size={12} className="text-white/30 mt-0.5 shrink-0" />
-              <p className="text-xs text-white/60 leading-relaxed">{draft.note}</p>
+              <p className="text-xs text-white/60 leading-relaxed flex-1">{draft.note}</p>
+              <button
+                onClick={() => setDraft(d => { const { note: _, ...rest } = d; return rest; })}
+                className="text-white/20 hover:text-white/50 transition-colors shrink-0 mt-0.5"
+                aria-label="Delete note"
+              >
+                <X size={12} />
+              </button>
             </div>
           </div>
         )}
