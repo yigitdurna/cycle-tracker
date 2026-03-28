@@ -69,7 +69,7 @@ export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, o
           <FileJson size={20} className="text-white/50" />
           <div className="text-left">
             <div className="text-sm font-medium">Export as JSON</div>
-            <div className="text-xs text-white/40">Full backup with all data</div>
+            <div className="text-xs text-white/40">Full backup — includes symptoms, notes &amp; history</div>
           </div>
           <Download size={16} className="text-white/30 ml-auto" />
         </button>
@@ -81,7 +81,7 @@ export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, o
           <FileSpreadsheet size={20} className="text-white/50" />
           <div className="text-left">
             <div className="text-sm font-medium">Export as CSV</div>
-            <div className="text-xs text-white/40">For spreadsheets</div>
+            <div className="text-xs text-white/40">Cycle dates only — use JSON for full backup</div>
           </div>
           <Download size={16} className="text-white/30 ml-auto" />
         </button>

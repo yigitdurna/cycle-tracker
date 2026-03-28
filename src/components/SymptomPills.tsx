@@ -297,13 +297,25 @@ export function SymptomPills({ log, onUpdate }: SymptomPillsProps) {
       {/* Note */}
       <div className="mt-3">
         {!noteOpen ? (
-          <button
-            onClick={() => setNoteOpen(true)}
-            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/60 transition-colors"
-          >
-            <MessageSquare size={12} />
-            <span>{draft.note ? 'Edit note...' : 'Add note...'}</span>
-          </button>
+          draft.note ? (
+            <button
+              onClick={() => setNoteOpen(true)}
+              className="w-full text-left glass rounded-xl px-3 py-2 group"
+            >
+              <div className="flex items-start gap-2">
+                <MessageSquare size={12} className="text-white/30 mt-0.5 shrink-0" />
+                <p className="text-xs text-white/60 leading-relaxed line-clamp-3">{draft.note}</p>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={() => setNoteOpen(true)}
+              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/60 transition-colors"
+            >
+              <MessageSquare size={12} />
+              <span>Add note...</span>
+            </button>
+          )
         ) : (
           <textarea
             ref={noteRef}

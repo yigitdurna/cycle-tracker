@@ -12,6 +12,14 @@ import { PHASES } from '../types';
 
 const STORAGE_KEY = 'cycle-tracker-calendar-v4';
 
+/** Returns true if two cycles share any overlapping days. */
+function cyclesOverlap(a: Cycle, b: Cycle): boolean {
+  const FAR_FUTURE = '9999-12-31';
+  const aEnd = a.end ?? FAR_FUTURE;
+  const bEnd = b.end ?? FAR_FUTURE;
+  return a.start <= bEnd && b.start <= aEnd;
+}
+
 function loadCycles(): Cycle[] {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -122,9 +130,13 @@ export function useCycles() {
         if (parsed.length > 0) {
           let count = 0;
           persist(prev => {
-            const merged = [...prev];
+            let merged = [...prev];
             for (const c of parsed) {
-              if (!merged.some(existing => existing.start === c.start)) {
+              // Remove any existing cycle that overlaps with the imported one
+              // (imported data is treated as the source of truth)
+              const hadOverlap = merged.some(existing => cyclesOverlap(existing, c));
+              merged = merged.filter(existing => !cyclesOverlap(existing, c));
+              if (hadOverlap || !merged.some(existing => existing.start === c.start)) {
                 merged.push(c);
                 count++;
               }
@@ -153,10 +165,15 @@ export function useCycles() {
           let count = 0;
           if (importedCycles.length > 0) {
             persist(prev => {
-              const merged = [...prev];
+              let merged = [...prev];
               for (const c of importedCycles) {
-                if (c.start && /^\d{4}-\d{2}-\d{2}$/.test(c.start) && !merged.some(existing => existing.start === c.start)) {
-                  merged.push({ start: c.start, end: c.end || null });
+                if (!c.start || !/^\d{4}-\d{2}-\d{2}$/.test(c.start)) continue;
+                const incoming: Cycle = { start: c.start, end: c.end || null };
+                // Remove any existing cycle that overlaps with the imported one
+                const hadOverlap = merged.some(existing => cyclesOverlap(existing, incoming));
+                merged = merged.filter(existing => !cyclesOverlap(existing, incoming));
+                if (hadOverlap || !merged.some(existing => existing.start === c.start)) {
+                  merged.push(incoming);
                   count++;
                 }
               }
