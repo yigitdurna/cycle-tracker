@@ -5,10 +5,6 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
   base: '/cycle-tracker/',
-  test: {
-    environment: 'node',
-    include: ['src/**/__tests__/**/*.test.ts'],
-  },
   plugins: [
     react(),
     tailwindcss(),
