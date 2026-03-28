@@ -4,6 +4,7 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  base: '/cycle-tracker/',
   plugins: [
     react(),
     tailwindcss(),
@@ -15,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: 'Menstrual Cycle Tracker',
         short_name: 'Cycle Tracker',
-        start_url: '/',
+        start_url: '/cycle-tracker/',
         display: 'standalone',
         background_color: '#0A0A0A',
         theme_color: '#0A0A0A',
