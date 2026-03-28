@@ -30,8 +30,8 @@ export function PhaseCard({ phaseInfo, subtitle }: PhaseCardProps) {
           <Icon size={24} style={{ color: phaseInfo.color }} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold">Today's Insight</h3>
-          <p className="text-sm text-white/50">{subtitle || `Phase: ${phaseInfo.name}`}</p>
+          <h3 className="text-lg font-semibold">{phaseInfo.name}</h3>
+          <p className="text-sm text-white/50">{subtitle ?? 'Your current phase'}</p>
         </div>
       </div>
       <p className="mt-4 text-white/70 leading-relaxed">

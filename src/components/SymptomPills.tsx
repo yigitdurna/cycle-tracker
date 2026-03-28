@@ -121,7 +121,7 @@ function OptionButton({ label, active, onClick }: { label: string; active: boole
 export function SymptomPills({ log, onUpdate }: SymptomPillsProps) {
   const [openPopover, setOpenPopover] = useState<PopoverId>(null);
   const [noteOpen, setNoteOpen] = useState(false);
-  const [noteText, setNoteText] = useState(log?.note ?? '');
+  const [noteText, setNoteText] = useState('');
   const noteRef = useRef<HTMLTextAreaElement>(null);
   const [saved, setSaved] = useState(false);
   const savedTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -130,7 +130,8 @@ export function SymptomPills({ log, onUpdate }: SymptomPillsProps) {
 
   useEffect(() => {
     setDraft(draftFromLog(log));
-    setNoteText(log?.note ?? '');
+    setNoteText('');
+    setNoteOpen(false);
   }, [log]);
 
   const isDirty = !draftsEqual(draft, draftFromLog(log));
@@ -204,12 +205,6 @@ export function SymptomPills({ log, onUpdate }: SymptomPillsProps) {
     setDraft(d => ({ ...d, functionalImpact: d.functionalImpact === value ? undefined : value }));
   };
 
-  const handleNoteBlur = () => {
-    const trimmed = noteText.trim();
-    if (trimmed !== (draft.note ?? '')) {
-      setDraft(d => ({ ...d, note: trimmed || undefined }));
-    }
-  };
 
   const energyLabel = draft.energy ? ['Low', 'Moderate', 'High'][draft.energy - 1] : 'Energy';
   const crampsLabel = draft.cramps ? ['Mild', 'Moderate', 'Severe'][draft.cramps - 1] : 'Cramps';
@@ -295,37 +290,43 @@ export function SymptomPills({ log, onUpdate }: SymptomPillsProps) {
       </div>
 
       {/* Note */}
-      <div className="mt-3">
+      <div className="mt-3 space-y-2">
+        {/* Existing saved note — always visible if present */}
+        {draft.note && (
+          <div className="glass rounded-xl px-3 py-2">
+            <div className="flex items-start gap-2">
+              <MessageSquare size={12} className="text-white/30 mt-0.5 shrink-0" />
+              <p className="text-xs text-white/60 leading-relaxed">{draft.note}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Add-more input */}
         {!noteOpen ? (
-          draft.note ? (
-            <button
-              onClick={() => setNoteOpen(true)}
-              className="w-full text-left glass rounded-xl px-3 py-2 group"
-            >
-              <div className="flex items-start gap-2">
-                <MessageSquare size={12} className="text-white/30 mt-0.5 shrink-0" />
-                <p className="text-xs text-white/60 leading-relaxed line-clamp-3">{draft.note}</p>
-              </div>
-            </button>
-          ) : (
-            <button
-              onClick={() => setNoteOpen(true)}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/60 transition-colors"
-            >
-              <MessageSquare size={12} />
-              <span>Add note...</span>
-            </button>
-          )
+          <button
+            onClick={() => setNoteOpen(true)}
+            className="flex items-center gap-1.5 text-xs text-white/40 hover:text-white/60 transition-colors"
+          >
+            <MessageSquare size={12} />
+            <span>{draft.note ? 'Add more...' : 'Add note...'}</span>
+          </button>
         ) : (
           <textarea
             ref={noteRef}
             value={noteText}
             onChange={e => setNoteText(e.target.value.slice(0, 500))}
             onBlur={() => {
-              handleNoteBlur();
-              if (!noteText.trim()) setNoteOpen(false);
+              const trimmed = noteText.trim();
+              if (trimmed) {
+                // Append to existing note rather than replace
+                const existing = draft.note?.trim();
+                const combined = existing ? `${existing}\n${trimmed}` : trimmed;
+                setDraft(d => ({ ...d, note: combined }));
+              }
+              setNoteText('');
+              setNoteOpen(false);
             }}
-            placeholder="How are you feeling?"
+            placeholder="Add to your notes..."
             maxLength={500}
             rows={2}
             className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-white/80 placeholder:text-white/30 focus:outline-none focus:border-accent/40 resize-none"
