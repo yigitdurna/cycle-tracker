@@ -20,9 +20,36 @@ function cyclesOverlap(a: Cycle, b: Cycle): boolean {
   return a.start <= bEnd && b.start <= aEnd;
 }
 
+/**
+ * Sort cycles by start date and remove any overlapping entries.
+ * When two cycles overlap the one with the later start wins —
+ * it is more likely to be intentional (explicitly entered or imported).
+ */
+function sanitizeCycles(cycles: Cycle[]): Cycle[] {
+  const sorted = [...cycles].sort((a, b) => a.start.localeCompare(b.start));
+  const result: Cycle[] = [];
+  for (const candidate of sorted) {
+    // Since we process in start-date order, the candidate always has a
+    // start >= any entry already in result. Remove the overlapping entry
+    // (earlier start) and add the candidate (later start wins).
+    const overlapIdx = result.findIndex(existing => cyclesOverlap(existing, candidate));
+    if (overlapIdx !== -1) {
+      result.splice(overlapIdx, 1);
+    }
+    result.push(candidate);
+  }
+  return result;
+}
+
 function loadCycles(): Cycle[] {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const raw: Cycle[] = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const clean = sanitizeCycles(raw);
+    // Persist the cleaned version so corrupted data is repaired immediately
+    if (clean.length !== raw.length) {
+      saveCycles(clean);
+    }
+    return clean;
   } catch {
     return [];
   }
@@ -37,9 +64,9 @@ export function useCycles() {
 
   const persist = useCallback((updater: (prev: Cycle[]) => Cycle[]) => {
     setCycles(prev => {
-      const sorted = [...updater(prev)].sort((a, b) => a.start.localeCompare(b.start));
-      saveCycles(sorted);
-      return sorted;
+      const clean = sanitizeCycles(updater(prev));
+      saveCycles(clean);
+      return clean;
     });
   }, []);
 
