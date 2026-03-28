@@ -66,11 +66,11 @@ export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycle
       </div>
 
       {hasCycles && (
-        <SymptomPills log={todayLog} onUpdate={onUpdateLog} />
+        <TodayInsightsPanel insights={todayInsights} />
       )}
 
       {hasCycles && (
-        <TodayInsightsPanel insights={todayInsights} />
+        <SymptomPills log={todayLog} onUpdate={onUpdateLog} />
       )}
 
       {hasCycles && (
