@@ -14,8 +14,8 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
       manifest: {
-        name: 'Menstrual Cycle Tracker',
-        short_name: 'Cycle Tracker',
+        name: 'Cycle Vault',
+        short_name: 'Cycle Vault',
         start_url: '/cycle-tracker/',
         display: 'standalone',
         background_color: '#0A0A0A',

@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings as SettingsIcon } from 'lucide-react';
 import { cn } from './lib/utils';
 import { useCycles } from './hooks/useCycles';
+import { useDayLogs } from './hooks/useDayLogs';
 import { NavBar, type Tab } from './components/NavBar';
 import { HomeView } from './views/HomeView';
 import { CalendarView } from './views/CalendarView';
 import { HistoryView } from './views/HistoryView';
 import { SettingsView } from './views/SettingsView';
 import { LogPeriodSheet } from './components/LogPeriodSheet';
-import type { Cycle } from './types';
+import { useInsights } from './hooks/useInsights';
+import { phaseTypeToUI } from './types';
+import type { Cycle, DayLog } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
@@ -30,15 +32,6 @@ export default function App() {
     }
   };
 
-  const handleSettingsToggle = () => {
-    if (activeTab === 'settings') {
-      setActiveTab(prevTab);
-    } else {
-      setPrevTab(activeTab);
-      setActiveTab('settings');
-    }
-  };
-
   const {
     cycles,
     addCycle,
@@ -52,8 +45,40 @@ export default function App() {
     exportJSON,
     exportCSV,
     importCSV,
+    importJSON,
     getPhaseForDate,
   } = useCycles();
+
+  const { allLogs, todayLog, setLog, clearAllLogs } = useDayLogs();
+
+  const { insights, hasEnoughData: insightsReady, getPhaseDescription } = useInsights(allLogs, cycles);
+
+  const handleUpdateLog = (partial: Partial<DayLog>) => {
+    const today = new Date().toISOString().slice(0, 10);
+    const current = todayLog ?? { date: today };
+    const merged = { ...current, ...partial };
+    setLog(today, merged);
+  };
+
+  const shareSummary = useMemo(() => {
+    if (!cycles.length) return undefined;
+    const parts: string[] = ['Cycle Vault Summary'];
+    if (cycleDay) parts.push(`Cycle day: ${cycleDay}`);
+    if (todayPhase) parts.push(`Phase: ${phaseTypeToUI(todayPhase.type)}`);
+    if (nextPeriod) parts.push(`Next period: in ${nextPeriod.daysToNext} day${nextPeriod.daysToNext === 1 ? '' : 's'}`);
+    if (todayLog) {
+      if (todayLog.mood?.length) parts.push(`Mood: ${todayLog.mood.join(', ')}`);
+      if (todayLog.flow) parts.push(`Flow: ${todayLog.flow}`);
+      if (todayLog.cramps) parts.push(`Cramps: ${['mild', 'moderate', 'severe'][todayLog.cramps - 1]}`);
+    }
+    return parts.join('\n');
+  }, [cycles.length, cycleDay, todayPhase, nextPeriod, todayLog]);
+
+  const handleUpdateLogForDate = (date: string, partial: Partial<DayLog>) => {
+    const current = allLogs[date] ?? { date };
+    const merged = { ...current, ...partial };
+    setLog(date, merged);
+  };
 
   const openLogSheet = () => {
     setEditingCycle(null);
@@ -109,16 +134,11 @@ export default function App() {
       {/* Content */}
       <main className="relative z-10 flex-1 px-6 pt-12 pb-32 max-w-lg mx-auto w-full">
         {/* Header */}
-        <header className="flex items-center justify-between mb-12">
-          <div>
-            <h1 className="text-2xl font-serif font-bold italic">Cycle Tracker</h1>
+        <header className="flex items-center mb-12">
+          <div className="flex items-center gap-3">
+            <img src={import.meta.env.BASE_URL + 'flower.png'} alt="" className="w-8 h-8" />
+            <h1 className="text-2xl font-bold lowercase" style={{ fontFamily: '"Lora", serif' }}>cycle vault</h1>
           </div>
-          <button
-            onClick={handleSettingsToggle}
-            className="w-10 h-10 rounded-full glass flex items-center justify-center"
-          >
-            <SettingsIcon size={20} className="text-white/60" />
-          </button>
         </header>
 
         <AnimatePresence mode="wait">
@@ -130,6 +150,11 @@ export default function App() {
               nextPeriod={nextPeriod}
               cycleDay={cycleDay}
               cycles={cycles}
+              todayLog={todayLog}
+              onUpdateLog={handleUpdateLog}
+              insights={insights}
+              insightsReady={insightsReady}
+              getPhaseDescription={getPhaseDescription}
             />
           )}
 
@@ -138,6 +163,8 @@ export default function App() {
               key="calendar"
               cycles={cycles}
               getPhaseForDate={getPhaseForDate}
+              dayLogs={allLogs}
+              onUpdateLog={handleUpdateLogForDate}
             />
           )}
 
@@ -154,10 +181,21 @@ export default function App() {
             <SettingsView
               key="settings"
               cycles={cycles}
-              onExportJSON={exportJSON}
+              onExportJSON={() => exportJSON(allLogs)}
               onExportCSV={exportCSV}
               onImportCSV={importCSV}
-              onClearAll={clearAll}
+              onImportJSON={async (file) => {
+                const result = await importJSON(file);
+                // Merge imported dayLogs
+                if (Object.keys(result.dayLogs).length > 0) {
+                  for (const [date, log] of Object.entries(result.dayLogs)) {
+                    if (!allLogs[date]) setLog(date, log);
+                  }
+                }
+                return result.cycles;
+              }}
+              onClearAll={() => { clearAll(); clearAllLogs(); }}
+              shareSummary={shareSummary}
             />
           )}
         </AnimatePresence>

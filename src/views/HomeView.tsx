@@ -3,9 +3,11 @@ import { Calendar as CalendarIcon, Droplets } from 'lucide-react';
 import { CycleRing } from '../components/CycleRing';
 import { StatCard } from '../components/StatCard';
 import { PhaseCard } from '../components/PhaseCard';
-import type { PhaseInfo, PhaseResult } from '../types';
+import { SymptomPills } from '../components/SymptomPills';
+import { InsightsPanel } from '../components/InsightsPanel';
+import type { PhaseInfo, PhaseResult, Insight, CyclePhase } from '../types';
+import type { Cycle, DayLog } from '../types';
 import { getCycleStats } from '../lib/cycle-math';
-import type { Cycle } from '../types';
 
 interface HomeViewProps {
   todayPhase: PhaseResult | null;
@@ -13,9 +15,14 @@ interface HomeViewProps {
   nextPeriod: { date: string; daysToNext: number } | null;
   cycleDay: number | null;
   cycles: Cycle[];
+  todayLog: DayLog | undefined;
+  onUpdateLog: (log: Partial<DayLog>) => void;
+  insights: Insight[];
+  insightsReady: boolean;
+  getPhaseDescription: (phase: CyclePhase) => string | null;
 }
 
-export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles }: HomeViewProps) {
+export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, insights, insightsReady, getPhaseDescription }: HomeViewProps) {
   const stats = getCycleStats(cycles);
   const totalDays = stats?.med ?? 28;
   const displayDay = cycleDay ?? 1;
@@ -28,6 +35,12 @@ export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycle
   }
 
   const hasCycles = cycles.length > 0;
+
+  // Replace static phase description with personalized one when available
+  const personalDesc = getPhaseDescription(todayUIPhase.name);
+  const phaseInfoWithPersonalization = personalDesc
+    ? { ...todayUIPhase, description: personalDesc }
+    : todayUIPhase;
 
   return (
     <motion.div
@@ -50,8 +63,16 @@ export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycle
         />
       </div>
 
+      {hasCycles && (
+        <SymptomPills log={todayLog} onUpdate={onUpdateLog} />
+      )}
+
+      {hasCycles && (
+        <InsightsPanel insights={insights} hasEnoughData={insightsReady} />
+      )}
+
       {hasCycles ? (
-        <PhaseCard phaseInfo={todayUIPhase} subtitle={phaseSubtitle} />
+        <PhaseCard phaseInfo={phaseInfoWithPersonalization} subtitle={phaseSubtitle} />
       ) : (
         <div className="glass rounded-[2rem] p-6 mt-8 text-center">
           <p className="text-white/50">Log your first period with the + button below</p>

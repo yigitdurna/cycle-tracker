@@ -14,7 +14,7 @@ import {
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { ymd } from '../lib/cycle-math';
-import type { PhaseResult } from '../types';
+import type { PhaseResult, DayLogs } from '../types';
 
 interface CalendarGridProps {
   getPhaseForDate: (dateStr: string) => PhaseResult | null;
@@ -22,6 +22,10 @@ interface CalendarGridProps {
   selectable?: boolean;
   selectedRange?: [Date | null, Date | null];
   onSelectDate?: (date: Date) => void;
+  /** Symptom logs keyed by YYYY-MM-DD */
+  dayLogs?: DayLogs;
+  /** Called when a day is tapped (non-selectable mode) */
+  onDayTap?: (dateStr: string) => void;
 }
 
 const DAY_HEADERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -55,7 +59,7 @@ function getPhaseDot(phase: PhaseResult | null): string | null {
   }
 }
 
-export function CalendarGrid({ getPhaseForDate, selectable, selectedRange, onSelectDate }: CalendarGridProps) {
+export function CalendarGrid({ getPhaseForDate, selectable, selectedRange, onSelectDate, dayLogs, onDayTap }: CalendarGridProps) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const touchStartX = useRef(0);
 
@@ -131,12 +135,20 @@ export function CalendarGrid({ getPhaseForDate, selectable, selectedRange, onSel
           const phaseClass = getPhaseClass(phase);
           const dot = getPhaseDot(phase);
           const inRange = isInRange(day);
+          const hasSymptom = inMonth && dayLogs && dateStr in dayLogs;
+          const tappable = !selectable && onDayTap && inMonth;
 
           return (
             <button
               key={i}
-              onClick={() => selectable && onSelectDate?.(day)}
-              disabled={!selectable}
+              onClick={() => {
+                if (selectable) {
+                  onSelectDate?.(day);
+                } else if (tappable) {
+                  onDayTap(dateStr);
+                }
+              }}
+              disabled={!selectable && !tappable}
               className={cn(
                 'aspect-square rounded-xl flex flex-col items-center justify-center text-sm relative transition-colors',
                 !inMonth && 'opacity-20',
@@ -144,10 +156,14 @@ export function CalendarGrid({ getPhaseForDate, selectable, selectedRange, onSel
                 isToday && 'bg-white text-bg-dark font-bold',
                 inRange && !isToday && 'bg-white/20 ring-1 ring-white/40',
                 selectable && inMonth && 'hover:bg-white/10 cursor-pointer',
+                tappable && 'cursor-pointer active:bg-white/5',
               )}
             >
               {format(day, 'd')}
-              {dot && !isToday && (
+              {hasSymptom && (
+                <div className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-accent" />
+              )}
+              {!hasSymptom && dot && !isToday && (
                 <div className={cn('absolute bottom-0.5 w-1 h-1 rounded-full', dot)} />
               )}
             </button>

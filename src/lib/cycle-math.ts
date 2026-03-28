@@ -1,6 +1,11 @@
 /**
- * Cycle prediction engine — exact port from app.js lines 22-128.
+ * Cycle prediction engine.
  * All date strings are "YYYY-MM-DD" format.
+ *
+ * Evidence basis:
+ * - Bull et al. 2019 (612,613 cycles): mean luteal phase 12.4 days
+ * - Fertile window estimated as cycle days med-16 to med-10
+ * - Calendar-only methods predict ovulation correctly ~21% of the time (Johnson et al. 2018)
  */
 import type { Cycle, PhaseResult } from '../types';
 
@@ -80,7 +85,9 @@ export function getCycleStats(cycles: Cycle[]): CycleStats | null {
   const sorted = [...cycles].sort((a, b) => a.start.localeCompare(b.start));
   const starts = sorted.map(c => c.start);
   const lens = cycleLens(starts);
-  const med = lens.length ? Math.round(median(lens)) : 28;
+  // Use only the most recent 6 cycle lengths — recent cycles are more predictive
+  const recentLens = lens.slice(-Math.min(6, lens.length));
+  const med = recentLens.length ? Math.round(median(recentLens)) : 28;
   return { med, starts };
 }
 
@@ -103,19 +110,17 @@ export function getPhaseForDate(dateStr: string, cycles: Cycle[]): PhaseResult |
     return { type: 'future', msg: 'No data yet' };
   }
 
-  // 3. Calculate Position in Cycle
+  // 3. Calculate Position in Cycle (no modulo — daysSince is used directly)
   const daysSince = diff(dateStr, anchorStart);
-  const dayInCycle = daysSince % stats.med; // 0 to med-1
-  const cycleNum = Math.floor(daysSince / stats.med);
 
-  // LIMIT PREDICTIONS:
-  if (cycleNum > 1) return null;
+  // If way past expected cycle, don't predict phases
+  if (daysSince >= stats.med * 1.5) return null;
 
-  // Calculate Key Days
+  // Determine if this is the current or next predicted cycle
+  const cycleNum = daysSince >= stats.med ? 1 : 0;
+  const dayInCycle = cycleNum === 1 ? daysSince - stats.med : daysSince;
+
   const med = stats.med;
-  const ovuDay = med - 14;
-  let fertileStart = ovuDay - 5;
-  const fertileEnd = ovuDay + 1;
 
   // Determine Period Length for Anchor
   let periodLen = 5;
@@ -132,18 +137,18 @@ export function getPhaseForDate(dateStr: string, cycles: Cycle[]): PhaseResult |
   // If we are in Cycle 1 (Next Cycle), ONLY show period.
   if (cycleNum === 1) return null;
 
-  // FERTILITY GAP FIX
-  if (dayInCycle >= periodLen && dayInCycle < fertileStart) {
-    fertileStart = periodLen;
-  }
+  // Evidence-based fertile window (Bull et al. 2019)
+  // Luteal phase: mean 12.4 days, range 7-17 days
+  // Fertile window spans med-16 to med-10
+  const fertileStart = Math.max(periodLen, med - 16);
+  const fertileEnd = med - 10;
 
   if (dayInCycle >= fertileStart && dayInCycle <= fertileEnd) {
-    const isOvu = (dayInCycle === ovuDay);
     return {
-      type: isOvu ? 'ovulation' : 'fertile',
+      type: dayInCycle >= med - 14 && dayInCycle <= med - 12 ? 'ovulation' : 'fertile',
       day: dayInCycle,
-      fertileStart: addDays(fromYmd(anchorStart), (cycleNum * med) + fertileStart),
-      fertileEnd: addDays(fromYmd(anchorStart), (cycleNum * med) + fertileEnd),
+      fertileStart: addDays(fromYmd(anchorStart), fertileStart),
+      fertileEnd: addDays(fromYmd(anchorStart), fertileEnd),
     };
   }
   if (dayInCycle > fertileEnd) {
@@ -162,23 +167,18 @@ export function getNextPeriodDate(cycles: Cycle[]): { date: string; daysToNext: 
   const todayYmd = ymd(new Date());
   const anchorStart = stats.starts.filter(s => s <= todayYmd).pop() || stats.starts[0];
 
-  let nextStart: string | null = null;
+  if (!anchorStart) return null;
 
-  if (anchorStart) {
-    let k = 0;
-    while (k < 1000) {
-      const candidate = ymd(addDays(fromYmd(anchorStart), (k + 1) * stats.med));
-      if (candidate > todayYmd) {
-        nextStart = candidate;
-        break;
-      }
-      k++;
-    }
-  } else {
-    nextStart = stats.starts[0];
-  }
+  // Calculate how many full cycles have passed since anchor
+  const daysSinceAnchor = diff(todayYmd, anchorStart);
+  const cyclesPassed = Math.floor(daysSinceAnchor / stats.med);
+  const nextCycleNum = cyclesPassed + 1;
 
-  if (!nextStart) return null;
+  // For very long/irregular cycles (median > 45), only predict the immediate next
+  const maxCyclesAhead = stats.med > 45 ? 1 : nextCycleNum;
+  const nextStart = ymd(addDays(fromYmd(anchorStart), maxCyclesAhead * stats.med));
+
+  if (nextStart <= todayYmd) return null;
 
   const daysToNext = diff(nextStart, todayYmd);
   return { date: nextStart, daysToNext };

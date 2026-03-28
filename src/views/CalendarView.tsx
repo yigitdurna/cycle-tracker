@@ -1,16 +1,29 @@
+import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Droplets } from 'lucide-react';
 import { CalendarGrid } from '../components/CalendarGrid';
-import type { Cycle, PhaseResult } from '../types';
+import { DayDetailSheet } from '../components/DayDetailSheet';
+import type { Cycle, PhaseResult, DayLog, DayLogs } from '../types';
+import { PHASES, phaseTypeToUI } from '../types';
 import { getNextPeriodDate } from '../lib/cycle-math';
 
 interface CalendarViewProps {
   cycles: Cycle[];
   getPhaseForDate: (dateStr: string) => PhaseResult | null;
+  dayLogs?: DayLogs;
+  onUpdateLog?: (date: string, log: Partial<DayLog>) => void;
 }
 
-export function CalendarView({ cycles, getPhaseForDate }: CalendarViewProps) {
+export function CalendarView({ cycles, getPhaseForDate, dayLogs, onUpdateLog }: CalendarViewProps) {
   const nextPeriod = getNextPeriodDate(cycles);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const handleDayTap = (dateStr: string) => {
+    setSelectedDate(dateStr);
+  };
+
+  const selectedPhase = selectedDate ? getPhaseForDate(selectedDate) : null;
+  const selectedUIPhase = selectedPhase ? PHASES[phaseTypeToUI(selectedPhase.type)] : PHASES.Follicular;
 
   return (
     <motion.div
@@ -21,7 +34,11 @@ export function CalendarView({ cycles, getPhaseForDate }: CalendarViewProps) {
     >
       <h2 className="text-3xl font-serif font-bold">Calendar</h2>
       <div className="glass rounded-[2rem] p-6">
-        <CalendarGrid getPhaseForDate={getPhaseForDate} />
+        <CalendarGrid
+          getPhaseForDate={getPhaseForDate}
+          dayLogs={dayLogs}
+          onDayTap={handleDayTap}
+        />
       </div>
 
       {/* Legend */}
@@ -61,6 +78,17 @@ export function CalendarView({ cycles, getPhaseForDate }: CalendarViewProps) {
           )}
         </div>
       )}
+
+      {/* Day Detail Sheet */}
+      <DayDetailSheet
+        open={!!selectedDate}
+        date={selectedDate || ''}
+        log={selectedDate && dayLogs ? dayLogs[selectedDate] : undefined}
+        phaseName={selectedUIPhase.name}
+        phaseColor={selectedUIPhase.color}
+        onClose={() => setSelectedDate(null)}
+        onUpdateLog={onUpdateLog || (() => {})}
+      />
     </motion.div>
   );
 }

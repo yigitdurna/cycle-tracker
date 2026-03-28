@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { Cycle, PhaseResult } from '../types';
+import type { Cycle, PhaseResult, DayLogs } from '../types';
 import { phaseTypeToUI } from '../types';
 import {
   ymd,
@@ -76,12 +76,13 @@ export function useCycles() {
 
   // --- Export/Import ---
 
-  const exportJSON = useCallback(() => {
-    const blob = new Blob([JSON.stringify(cycles, null, 2)], { type: 'application/json' });
+  const exportJSON = useCallback((dayLogs?: DayLogs) => {
+    const data = { cycles, ...(dayLogs && Object.keys(dayLogs).length > 0 ? { dayLogs } : {}) };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'cycles.json';
+    a.download = 'cycle-vault-backup.json';
     a.click();
     URL.revokeObjectURL(url);
   }, [cycles]);
@@ -139,6 +140,38 @@ export function useCycles() {
     });
   }, [persist]);
 
+  const importJSON = useCallback((file: File): Promise<{ cycles: number; dayLogs: DayLogs }> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const raw = JSON.parse(e.target?.result as string);
+          // Support both old format (Cycle[]) and new format ({ cycles, dayLogs })
+          const importedCycles: Cycle[] = Array.isArray(raw) ? raw : (raw.cycles ?? []);
+          const importedLogs: DayLogs = Array.isArray(raw) ? {} : (raw.dayLogs ?? {});
+
+          let count = 0;
+          if (importedCycles.length > 0) {
+            persist(prev => {
+              const merged = [...prev];
+              for (const c of importedCycles) {
+                if (c.start && /^\d{4}-\d{2}-\d{2}$/.test(c.start) && !merged.some(existing => existing.start === c.start)) {
+                  merged.push({ start: c.start, end: c.end || null });
+                  count++;
+                }
+              }
+              return merged;
+            });
+          }
+          resolve({ cycles: count, dayLogs: importedLogs });
+        } catch {
+          resolve({ cycles: 0, dayLogs: {} });
+        }
+      };
+      reader.readAsText(file);
+    });
+  }, [persist]);
+
   return {
     cycles,
     addCycle,
@@ -152,6 +185,7 @@ export function useCycles() {
     exportJSON,
     exportCSV,
     importCSV,
+    importJSON,
     getPhaseForDate: (dateStr: string) => getPhaseForDate(dateStr, cycles),
   };
 }
