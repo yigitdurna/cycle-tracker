@@ -51,7 +51,7 @@ export default function App() {
 
   const { allLogs, todayLog, setLog, clearAllLogs } = useDayLogs();
 
-  const { insights, hasEnoughData: insightsReady, getPhaseDescription } = useInsights(allLogs, cycles);
+  const { insights, hasEnoughData: insightsReady, getPhaseDescription, todayInsights } = useInsights(allLogs, cycles, todayLog);
 
   const handleUpdateLog = (partial: Partial<DayLog>) => {
     const today = new Date().toISOString().slice(0, 10);
@@ -152,6 +152,7 @@ export default function App() {
               cycles={cycles}
               todayLog={todayLog}
               onUpdateLog={handleUpdateLog}
+              todayInsights={todayInsights}
               insights={insights}
               insightsReady={insightsReady}
               getPhaseDescription={getPhaseDescription}

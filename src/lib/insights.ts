@@ -1,4 +1,4 @@
-import type { Cycle, CyclePhase, DayLogs, PhaseSymptomPattern, CycleLengthAlert, Insight } from '../types';
+import type { Cycle, CyclePhase, DayLog, DayLogs, PhaseSymptomPattern, CycleLengthAlert, Insight } from '../types';
 import { getPhaseForDate, diff } from './cycle-math';
 import { phaseTypeToUI } from '../types';
 
@@ -233,4 +233,100 @@ export function generateInsights(
 
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// Immediate, actionable tip per phase — shown regardless of data availability
+const PHASE_TIPS: Record<CyclePhase, { title: string; description: string }> = {
+  Menstrual: {
+    title: 'Rest is productive',
+    description: 'Your body is doing significant work right now. Prioritize sleep, warmth, and gentle movement.',
+  },
+  Follicular: {
+    title: 'Energy is building',
+    description: 'Estrogen is rising. Good timing for new projects, workouts, and social plans.',
+  },
+  Ovulation: {
+    title: 'Peak energy window',
+    description: 'Communication and confidence tend to peak here. A good time for important conversations or bold moves.',
+  },
+  Luteal: {
+    title: 'Focus and wind down',
+    description: 'Great for deep, concentrated work early in this phase. Plan lighter days as it progresses.',
+  },
+};
+
+/**
+ * Generate 1–3 insights relevant to today specifically.
+ * Always includes a phase tip. Adds pattern-based and symptom-match
+ * insights when enough data exists (>= 2 cycles).
+ */
+export function getTodayInsights(
+  todayLog: DayLog | undefined,
+  logs: DayLogs,
+  cycles: Cycle[],
+  phase: CyclePhase,
+): Insight[] {
+  const insights: Insight[] = [];
+  const tip = PHASE_TIPS[phase];
+
+  // 1. Phase tip — always shown
+  insights.push({
+    id: 'today-phase-tip',
+    category: 'prediction',
+    title: tip.title,
+    description: tip.description,
+    phase,
+    confidence: 1,
+  });
+
+  if (cycles.length < 2) return insights;
+
+  const patterns = getPhaseSymptomPatterns(logs, cycles);
+
+  // 2. Heads-up about the most common symptom for this phase
+  const topPattern = patterns.find(p => p.phase === phase && p.frequency >= 0.5);
+  if (topPattern) {
+    const label = SYMPTOM_LABELS[topPattern.symptom] || topPattern.symptom;
+    const pct = Math.round(topPattern.frequency * 100);
+    const severityText = topPattern.avgSeverity
+      ? ` (usually ${SEVERITY_WORDS[Math.round(topPattern.avgSeverity)] || 'moderate'})`
+      : '';
+    insights.push({
+      id: 'today-heads-up',
+      category: 'pattern',
+      title: `${capitalize(label)} likely today`,
+      description: `You've logged ${label}${severityText} in ${pct}% of your ${phase.toLowerCase()} days. Plan accordingly.`,
+      phase,
+      confidence: topPattern.frequency,
+    });
+  }
+
+  // 3. Flag an unusual symptom if something logged today is out of pattern
+  if (todayLog) {
+    const loggedSymptoms: string[] = [];
+    if (todayLog.mood?.length) loggedSymptoms.push('mood');
+    if (todayLog.cramps) loggedSymptoms.push('cramps');
+    if (todayLog.energy) loggedSymptoms.push('energy');
+    if (todayLog.flow) loggedSymptoms.push('flow');
+    if (todayLog.pain) loggedSymptoms.push('pain');
+
+    for (const sym of loggedSymptoms) {
+      const pattern = patterns.find(p => p.symptom === sym && p.phase === phase);
+      // Only flag if we have history for this symptom in this phase AND it's rare
+      if (pattern && pattern.totalDaysInPhase >= 3 && pattern.frequency < 0.25) {
+        const label = SYMPTOM_LABELS[sym] || sym;
+        insights.push({
+          id: 'today-unusual',
+          category: 'anomaly',
+          title: `Unusual ${label} today`,
+          description: `You don't usually experience ${label} during ${phase.toLowerCase()} — only ${Math.round(pattern.frequency * 100)}% of these days historically.`,
+          phase,
+          confidence: 0.7,
+        });
+        break; // One anomaly card is enough
+      }
+    }
+  }
+
+  return insights;
 }

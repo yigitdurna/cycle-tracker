@@ -4,6 +4,7 @@ import { CycleRing } from '../components/CycleRing';
 import { StatCard } from '../components/StatCard';
 import { PhaseCard } from '../components/PhaseCard';
 import { SymptomPills } from '../components/SymptomPills';
+import { TodayInsightsPanel } from '../components/TodayInsightsPanel';
 import { InsightsPanel } from '../components/InsightsPanel';
 import type { PhaseInfo, PhaseResult, Insight, CyclePhase } from '../types';
 import type { Cycle, DayLog } from '../types';
@@ -17,12 +18,13 @@ interface HomeViewProps {
   cycles: Cycle[];
   todayLog: DayLog | undefined;
   onUpdateLog: (log: Partial<DayLog>) => void;
+  todayInsights: Insight[];
   insights: Insight[];
   insightsReady: boolean;
   getPhaseDescription: (phase: CyclePhase) => string | null;
 }
 
-export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, insights, insightsReady, getPhaseDescription }: HomeViewProps) {
+export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, todayInsights, insights, insightsReady, getPhaseDescription }: HomeViewProps) {
   const stats = getCycleStats(cycles);
   const totalDays = stats?.med ?? 28;
   const displayDay = cycleDay ?? 1;
@@ -65,6 +67,10 @@ export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycle
 
       {hasCycles && (
         <SymptomPills log={todayLog} onUpdate={onUpdateLog} />
+      )}
+
+      {hasCycles && (
+        <TodayInsightsPanel insights={todayInsights} />
       )}
 
       {hasCycles && (
