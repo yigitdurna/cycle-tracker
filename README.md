@@ -1,73 +1,43 @@
-# Menstrual Cycle Tracker
+# Cycle Tracker
 
-A privacy-focused menstrual cycle tracker built as a Progressive Web App (PWA). Designed with a dark aesthetic, it features a custom-styled calendar, accurate phase predictions, and complete data privacy (all data stays on your device).
-
-![Cycle Tracker Screenshot](https://via.placeholder.com/800x400?text=Cycle+Tracker+Preview)
-*(Replace with actual screenshot)*
+A privacy-focused menstrual cycle tracking app built with React, TypeScript, and Tailwind CSS. Features accurate phase predictions, an animated UI with phase-based color themes, and complete data privacy — all data stays on your device.
 
 ## Features
 
-*   **Dark Theme**: Pure Black background (`#050505`) with Rose Gold accents (`#E6B8B8`) and Lavender Luteal phase.
-*   **Smart Predictions**:
-    *   Accurate tracking of Period, Fertile Window, Ovulation, and Luteal phases.
-    *   **No-Gap Fertility**: Fertile window starts immediately after the period ends.
-    *   **Smart Limiting**: Predictions are shown only for the current cycle and the immediate next period to reduce clutter.
-*   **Interactive Calendar**:
-    *   Custom-styled **Flatpickr** integration.
-    *   **Edit Mode**: Click "Edit" in history to modify dates directly on the calendar.
-    *   **Clean UI**: Hidden arrows, centered layout, and subtle markers for a seamless look.
-*   **Privacy First**:
-    *   **Local Storage**: All data is stored locally in your browser (`localStorage`). No servers, no tracking.
-    *   **Data Portability**: Full JSON and CSV Export/Import capabilities.
-*   **PWA Ready**:
-    *   Installable on iOS and Android.
-    *   Offline support via Service Worker.
-    *   App-like feel with bottom navigation.
+- **Phase-Based UI**: Background gradients, ring color, and insights shift automatically across Menstrual, Follicular, Ovulation, and Luteal phases.
+- **Smart Predictions**: Median-based cycle length calculation with fertile window, ovulation, and next period predictions.
+- **Interactive Calendar**: Custom calendar grid with phase-colored days, swipe navigation, and period logging via range selection.
+- **Privacy First**: All data stored locally in the browser. No servers, no tracking, no accounts.
+- **Data Portability**: JSON and CSV export/import for backups and analysis.
+- **PWA**: Installable, works offline, app-like experience.
 
 ## Tech Stack
 
-*   **HTML5**: Semantic structure.
-*   **CSS3**: Custom variables, Flexbox/Grid, Glassmorphism effects.
-*   **JavaScript (ES6+)**: Core logic, cycle math, and DOM manipulation.
-*   **Flatpickr**: Lightweight, powerful datetime picker (customized).
-*   **Fonts**: Futura Medium (System Fallback).
+- React 19 + TypeScript
+- Vite
+- Tailwind CSS v4
+- Motion (animations)
+- Lucide React (icons)
+- date-fns (calendar math)
+- vite-plugin-pwa (offline support)
 
-## Getting Started
+## Development
 
-Since this is a static web application, you can run it with any simple HTTP server.
-
-### Prerequisites
-*   A modern web browser (Safari, Chrome, Edge).
-*   (Optional) A local server like `http-server` or VS Code Live Server.
-
-### Installation
-
-1.  **Clone the repository**:
-    ```bash
-    git clone https://github.com/yourusername/cycle-tracker.git
-    cd cycle-tracker
-    ```
-
-2.  **Run locally**:
-    *   If you have Python installed:
-        ```bash
-        python3 -m http.server
-        ```
-    *   Or use `npx`:
-        ```bash
-        npx http-server .
-        ```
-
-3.  **Open in Browser**:
-    *   Navigate to `http://localhost:8000` (or whatever port your server uses).
+```bash
+npm install
+npm run dev       # dev server on port 3000
+npm run build     # production build
+npm run lint      # type check
+```
 
 ## Usage
 
-1.  **Log a Period**: Select start and end dates on the calendar and click "Log Period".
-2.  **Edit a Cycle**: Go to the **History** tab, click "Edit" on any cycle. The app will switch to the calendar view where you can adjust the dates and click "Update Cycle".
-3.  **Delete**: Click the Trash icon in the History tab.
-4.  **Export/Import**: Use the buttons in the History tab to backup your data (JSON) or export for analysis (CSV).
+1. **Log a Period**: Tap the + button, select start and end dates, tap "Log Period".
+2. **View Phases**: Home screen shows current cycle day, phase, and next period countdown.
+3. **Calendar**: Browse months with phase-colored day indicators.
+4. **Edit/Delete**: History tab shows all logged cycles with edit and delete options.
+5. **Export/Import**: Settings tab for JSON/CSV backup and restore.
 
 ## License
 
-This project is open-source and available under the MIT License.
+MIT
