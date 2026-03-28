@@ -27,31 +27,32 @@ function saveCycles(cycles: Cycle[]) {
 export function useCycles() {
   const [cycles, setCycles] = useState<Cycle[]>(loadCycles);
 
-  const persist = useCallback((next: Cycle[]) => {
-    const sorted = [...next].sort((a, b) => a.start.localeCompare(b.start));
-    setCycles(sorted);
-    saveCycles(sorted);
+  const persist = useCallback((updater: (prev: Cycle[]) => Cycle[]) => {
+    setCycles(prev => {
+      const sorted = [...updater(prev)].sort((a, b) => a.start.localeCompare(b.start));
+      saveCycles(sorted);
+      return sorted;
+    });
   }, []);
 
   // --- CRUD ---
 
   const addCycle = useCallback((start: string, end: string) => {
-    persist([...cycles, { start, end }]);
-  }, [cycles, persist]);
+    persist(prev => [...prev, { start, end }]);
+  }, [persist]);
 
   const updateCycle = useCallback((oldStart: string, newStart: string, newEnd: string) => {
-    const updated = cycles.map(c =>
+    persist(prev => prev.map(c =>
       c.start === oldStart ? { start: newStart, end: newEnd } : c
-    );
-    persist(updated);
-  }, [cycles, persist]);
+    ));
+  }, [persist]);
 
   const deleteCycle = useCallback((start: string) => {
-    persist(cycles.filter(c => c.start !== start));
-  }, [cycles, persist]);
+    persist(prev => prev.filter(c => c.start !== start));
+  }, [persist]);
 
   const clearAll = useCallback(() => {
-    persist([]);
+    persist(() => []);
   }, [persist]);
 
   // --- Computed ---
@@ -105,30 +106,38 @@ export function useCycles() {
       reader.onload = (e) => {
         const text = e.target?.result as string;
         const lines = text.split('\n');
-        let count = 0;
         const startIdx = lines[0].toLowerCase().includes('start') ? 1 : 0;
 
-        const newCycles = [...cycles];
+        const parsed: Cycle[] = [];
         for (let i = startIdx; i < lines.length; i++) {
           const line = lines[i].trim();
           if (!line) continue;
           const [start, end] = line.split(',');
           if (start && /^\d{4}-\d{2}-\d{2}$/.test(start)) {
-            const exists = newCycles.some(c => c.start === start);
-            if (!exists) {
-              newCycles.push({ start, end: end || null });
-              count++;
-            }
+            parsed.push({ start, end: end || null });
           }
         }
-        if (count > 0) {
-          persist(newCycles);
+
+        if (parsed.length > 0) {
+          let count = 0;
+          persist(prev => {
+            const merged = [...prev];
+            for (const c of parsed) {
+              if (!merged.some(existing => existing.start === c.start)) {
+                merged.push(c);
+                count++;
+              }
+            }
+            return merged;
+          });
+          resolve(count);
+        } else {
+          resolve(0);
         }
-        resolve(count);
       };
       reader.readAsText(file);
     });
-  }, [cycles, persist]);
+  }, [persist]);
 
   return {
     cycles,

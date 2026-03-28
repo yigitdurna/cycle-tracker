@@ -2,7 +2,7 @@ import { motion } from 'motion/react';
 import { Droplets } from 'lucide-react';
 import { CalendarGrid } from '../components/CalendarGrid';
 import type { Cycle, PhaseResult } from '../types';
-import { ymd, getNextPeriodDate } from '../lib/cycle-math';
+import { getNextPeriodDate } from '../lib/cycle-math';
 
 interface CalendarViewProps {
   cycles: Cycle[];

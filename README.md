@@ -1,5 +1,7 @@
 # Cycle Tracker
 
+**[Live Demo](https://yigitdurna.github.io/cycle-tracker/)**
+
 A privacy-focused menstrual cycle tracking app built with React, TypeScript, and Tailwind CSS. Features accurate phase predictions, an animated UI with phase-based color themes, and complete data privacy — all data stays on your device.
 
 ## Features
@@ -37,7 +39,3 @@ npm run lint      # type check
 3. **Calendar**: Browse months with phase-colored day indicators.
 4. **Edit/Delete**: History tab shows all logged cycles with edit and delete options.
 5. **Export/Import**: Settings tab for JSON/CSV backup and restore.
-
-## License
-
-MIT
