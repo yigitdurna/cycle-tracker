@@ -15,16 +15,20 @@ export function InsightsPanel({ insights, hasEnoughData }: InsightsPanelProps) {
     );
   }
 
-  if (insights.length === 0) return null;
-
   return (
     <div className="w-full mt-6 space-y-3">
       <p className="text-xs text-white/40 uppercase tracking-wider font-medium">
         Your Patterns
       </p>
-      {insights.map((insight, i) => (
-        <InsightCard key={insight.id} insight={insight} index={i} />
-      ))}
+      {insights.length === 0 ? (
+        <div className="glass rounded-[2rem] p-5 text-center">
+          <p className="text-xs text-white/30">Log symptoms regularly to build up your patterns</p>
+        </div>
+      ) : (
+        insights.map((insight, i) => (
+          <InsightCard key={insight.id} insight={insight} index={i} />
+        ))
+      )}
     </div>
   );
 }
