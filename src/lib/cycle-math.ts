@@ -80,21 +80,21 @@ export interface CycleStats {
   starts: string[];
 }
 
-export function getCycleStats(cycles: Cycle[]): CycleStats | null {
+export function getCycleStats(cycles: Cycle[], fallback = 28): CycleStats | null {
   if (!cycles.length) return null;
   const sorted = [...cycles].sort((a, b) => a.start.localeCompare(b.start));
   const starts = sorted.map(c => c.start);
   const lens = cycleLens(starts);
   // Use only the most recent 6 cycle lengths — recent cycles are more predictive
   const recentLens = lens.slice(-Math.min(6, lens.length));
-  const med = recentLens.length ? Math.round(median(recentLens)) : 28;
+  const med = recentLens.length ? Math.round(median(recentLens)) : fallback;
   return { med, starts };
 }
 
 // --- Core Prediction Logic ---
 
-export function getPhaseForDate(dateStr: string, cycles: Cycle[]): PhaseResult | null {
-  const stats = getCycleStats(cycles);
+export function getPhaseForDate(dateStr: string, cycles: Cycle[], fallback = 28): PhaseResult | null {
+  const stats = getCycleStats(cycles, fallback);
   if (!stats) return null;
 
   // 1. Check if inside a recorded period (Exact Match)
@@ -169,8 +169,8 @@ export function getPhaseForDate(dateStr: string, cycles: Cycle[]): PhaseResult |
 
 // --- Next Period Calculation (from renderDashboard) ---
 
-export function getNextPeriodDate(cycles: Cycle[]): { date: string; daysToNext: number } | null {
-  const stats = getCycleStats(cycles);
+export function getNextPeriodDate(cycles: Cycle[], fallback = 28): { date: string; daysToNext: number } | null {
+  const stats = getCycleStats(cycles, fallback);
   if (!stats) return null;
 
   const todayYmd = ymd(new Date());
@@ -194,8 +194,8 @@ export function getNextPeriodDate(cycles: Cycle[]): { date: string; daysToNext: 
 }
 
 /** Get current cycle day (1-based) relative to most recent cycle start */
-export function getCurrentCycleDay(cycles: Cycle[]): number | null {
-  const stats = getCycleStats(cycles);
+export function getCurrentCycleDay(cycles: Cycle[], fallback = 28): number | null {
+  const stats = getCycleStats(cycles, fallback);
   if (!stats) return null;
 
   const todayYmd = ymd(new Date());

@@ -22,11 +22,12 @@ interface HomeViewProps {
   insights: Insight[];
   hasEnoughData: boolean;
   getPhaseDescription: (phase: CyclePhase) => string | null;
+  customCycleLength: number;
 }
 
-export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, todayInsights, insights, hasEnoughData, getPhaseDescription }: HomeViewProps) {
-  const stats = getCycleStats(cycles);
-  const totalDays = stats?.med ?? 28;
+export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, todayInsights, insights, hasEnoughData, getPhaseDescription, customCycleLength }: HomeViewProps) {
+  const stats = getCycleStats(cycles, customCycleLength);
+  const totalDays = stats?.med ?? customCycleLength;
   const displayDay = cycleDay ?? 1;
 
   let phaseSubtitle: string | undefined;

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Download, Upload, Trash2, FileJson, FileSpreadsheet, Shield, Share2 } from 'lucide-react';
+import { Download, Upload, Trash2, FileJson, FileSpreadsheet, Shield, Share2, RefreshCw } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import type { Cycle } from '../types';
 
@@ -12,9 +12,12 @@ interface SettingsViewProps {
   onImportJSON: (file: File) => Promise<number>;
   onClearAll: () => void;
   shareSummary?: string;
+  customCycleLength: number | undefined;
+  onSetCycleLength: (v: number | undefined) => void;
+  computedCycleLength: number | undefined;
 }
 
-export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, onImportJSON, onClearAll, shareSummary }: SettingsViewProps) {
+export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, onImportJSON, onClearAll, shareSummary, customCycleLength, onSetCycleLength, computedCycleLength }: SettingsViewProps) {
   const [clearConfirm, setClearConfirm] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -48,6 +51,49 @@ export function SettingsView({ cycles, onExportJSON, onExportCSV, onImportCSV, o
               Everything stays on your device. No accounts, no cloud, no tracking. We never see your data.
             </p>
           </div>
+        </div>
+      </div>
+
+      {/* Cycle Length */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold uppercase tracking-wider text-white/40 px-1">Cycle</h3>
+        <div className="glass rounded-3xl p-5 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="text-sm font-medium">Average cycle length</div>
+              <div className="text-xs text-white/40 mt-0.5">
+                {computedCycleLength
+                  ? `Computed from your data: ${computedCycleLength} days`
+                  : 'Used until enough cycles are logged'}
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <input
+                type="number"
+                min={15}
+                max={60}
+                value={customCycleLength ?? ''}
+                onChange={e => {
+                  const raw = e.target.value;
+                  if (raw === '') { onSetCycleLength(undefined); return; }
+                  const v = parseInt(raw, 10);
+                  if (!isNaN(v)) onSetCycleLength(Math.min(60, Math.max(15, v)));
+                }}
+                placeholder="28"
+                className="w-16 bg-white/5 border border-white/10 rounded-xl px-2 py-1.5 text-sm text-center text-white/80 focus:outline-none focus:border-accent/40"
+              />
+              <span className="text-xs text-white/40">days</span>
+            </div>
+          </div>
+          {customCycleLength && (
+            <button
+              onClick={() => onSetCycleLength(undefined)}
+              className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors"
+            >
+              <RefreshCw size={12} />
+              Reset to default (28)
+            </button>
+          )}
         </div>
       </div>
 

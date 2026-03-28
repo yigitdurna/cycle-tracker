@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from './lib/utils';
 import { useCycles } from './hooks/useCycles';
 import { useDayLogs } from './hooks/useDayLogs';
+import { useSettings } from './hooks/useSettings';
+import { getCycleStats } from './lib/cycle-math';
 import { NavBar, type Tab } from './components/NavBar';
 import { HomeView } from './views/HomeView';
 import { CalendarView } from './views/CalendarView';
@@ -32,6 +34,8 @@ export default function App() {
     }
   };
 
+  const { customCycleLength, setCustomCycleLength } = useSettings();
+
   const {
     cycles,
     addCycle,
@@ -47,7 +51,7 @@ export default function App() {
     importCSV,
     importJSON,
     getPhaseForDate,
-  } = useCycles();
+  } = useCycles(customCycleLength ?? 28);
 
   const { allLogs, todayLog, setLog, clearAllLogs } = useDayLogs();
 
@@ -156,6 +160,7 @@ export default function App() {
               insights={insights}
               hasEnoughData={hasEnoughData}
               getPhaseDescription={getPhaseDescription}
+              customCycleLength={customCycleLength ?? 28}
             />
           )}
 
@@ -197,6 +202,9 @@ export default function App() {
               }}
               onClearAll={() => { clearAll(); clearAllLogs(); }}
               shareSummary={shareSummary}
+              customCycleLength={customCycleLength}
+              onSetCycleLength={setCustomCycleLength}
+              computedCycleLength={getCycleStats(cycles)?.med}
             />
           )}
         </AnimatePresence>

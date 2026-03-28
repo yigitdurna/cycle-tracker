@@ -57,7 +57,7 @@ function saveCycles(cycles: Cycle[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cycles));
 }
 
-export function useCycles() {
+export function useCycles(defaultCycleLength = 28) {
   const [cycles, setCycles] = useState<Cycle[]>(loadCycles);
 
   const persist = useCallback((updater: (prev: Cycle[]) => Cycle[]) => {
@@ -91,8 +91,8 @@ export function useCycles() {
   // --- Computed ---
 
   const todayPhase: PhaseResult | null = useMemo(() => {
-    return getPhaseForDate(ymd(new Date()), cycles);
-  }, [cycles]);
+    return getPhaseForDate(ymd(new Date()), cycles, defaultCycleLength);
+  }, [cycles, defaultCycleLength]);
 
   const todayUIPhase = useMemo(() => {
     if (!todayPhase) return PHASES.Follicular;
@@ -100,12 +100,12 @@ export function useCycles() {
   }, [todayPhase]);
 
   const nextPeriod = useMemo(() => {
-    return getNextPeriodDate(cycles);
-  }, [cycles]);
+    return getNextPeriodDate(cycles, defaultCycleLength);
+  }, [cycles, defaultCycleLength]);
 
   const cycleDay = useMemo(() => {
-    return getCurrentCycleDay(cycles);
-  }, [cycles]);
+    return getCurrentCycleDay(cycles, defaultCycleLength);
+  }, [cycles, defaultCycleLength]);
 
   // --- Export/Import ---
 
@@ -262,6 +262,6 @@ export function useCycles() {
     exportCSV,
     importCSV,
     importJSON,
-    getPhaseForDate: (dateStr: string) => getPhaseForDate(dateStr, cycles),
+    getPhaseForDate: (dateStr: string) => getPhaseForDate(dateStr, cycles, defaultCycleLength),
   };
 }
