@@ -129,6 +129,15 @@ export function getPhaseForDate(dateStr: string, cycles: Cycle[]): PhaseResult |
     periodLen = diff(anchorObj.end, anchorObj.start) + 1;
   }
 
+  // If we are predicting the NEXT cycle (cycleNum === 1) but the user has
+  // already recorded an actual next cycle starting after the anchor, the
+  // prediction has been superseded. The gap was a late period — don't colour
+  // those days as predicted period.
+  if (cycleNum === 1) {
+    const hasActualNextCycle = stats.starts.some(s => s > anchorStart!);
+    if (hasActualNextCycle) return null;
+  }
+
   // Determine Phase
   if (dayInCycle >= 0 && dayInCycle < periodLen) {
     return { type: 'period', day: dayInCycle + 1, recorded: false };
