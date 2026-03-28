@@ -1,8 +1,15 @@
 {
   "name": "cycle-tracker",
+  "description": "Privacy-first menstrual cycle tracking PWA — all data stays on your device",
   "private": true,
   "version": "7.0.0",
   "type": "module",
+  "author": "yigitdurna",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yigitdurna/cycle-tracker"
+  },
+  "keywords": ["pwa", "cycle-tracker", "menstrual-health", "privacy", "react"],
   "scripts": {
     "dev": "vite --port=3000",
     "build": "vite build",
