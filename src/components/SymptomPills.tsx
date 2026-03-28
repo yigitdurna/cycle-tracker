@@ -70,30 +70,16 @@ function Pill({
 
 function Popover({
   open,
-  onClose,
   children,
 }: {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
 }) {
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        onClose();
-      }
-    }
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [open, onClose]);
-
   if (!open) return null;
 
   return (
-    <div ref={ref} className="glass rounded-2xl p-3 mt-2 w-full">
+    <div className="glass rounded-2xl p-3 mt-2 w-full">
       {children}
     </div>
   );
