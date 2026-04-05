@@ -1,5 +1,5 @@
 {
-  "name": "cyclevault",
+  "name": "cycle-vault",
   "description": "Privacy-first menstrual cycle tracking PWA — all data stays on your device",
   "private": true,
   "version": "7.0.0",
@@ -7,9 +7,9 @@
   "author": "yigitdurna",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yigitdurna/cyclevault"
+    "url": "https://github.com/yigitdurna/cycle-vault"
   },
-  "keywords": ["pwa", "cyclevault", "menstrual-health", "privacy", "react"],
+  "keywords": ["pwa", "cycle-vault", "menstrual-health", "privacy", "react"],
   "scripts": {
     "dev": "vite --port=3000",
     "build": "vite build",
