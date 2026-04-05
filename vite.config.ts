@@ -4,7 +4,7 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
-  base: '/cycle-tracker/',
+  base: '/cyclevault/',
   plugins: [
     react(),
     tailwindcss(),
@@ -16,7 +16,7 @@ export default defineConfig({
       manifest: {
         name: 'cycle vault',
         short_name: 'cycle vault',
-        start_url: '/cycle-tracker/',
+        start_url: '/cyclevault/',
         display: 'standalone',
         background_color: '#0A0A0A',
         theme_color: '#0A0A0A',

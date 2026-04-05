@@ -1,6 +1,6 @@
 # cycle vault
 
-**[Live Demo](https://yigitdurna.github.io/cycle-tracker/)**
+**[Live Demo](https://yigitdurna.github.io/cyclevault/)**
 
 A privacy-focused menstrual cycle tracking PWA built with React, TypeScript, and Tailwind CSS. All data stays on your device — no accounts, no servers, no tracking.
 
