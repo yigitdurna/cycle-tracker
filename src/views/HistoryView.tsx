@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Pencil, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { nice, diff, fromYmd } from '../lib/cycle-math';
+import { cn } from '../lib/utils';
 import type { Cycle } from '../types';
 
 interface HistoryViewProps {
@@ -36,11 +37,20 @@ export function HistoryView({ cycles, onEdit, onDelete }: HistoryViewProps) {
             const startDate = fromYmd(cycle.start);
             const month = startDate.toLocaleDateString(undefined, { month: 'long' });
             const duration = cycle.end ? diff(cycle.end, cycle.start) + 1 : null;
+            const isActive = cycle.end === null;
 
             return (
-              <div key={cycle.start} className="glass rounded-3xl p-5 flex items-center justify-between">
+              <div key={cycle.start} className={cn(
+                'glass rounded-3xl p-5 flex items-center justify-between',
+                isActive && 'border border-menstrual/30'
+              )}>
                 <div>
-                  <p className="font-semibold text-lg">{month}</p>
+                  <p className="font-semibold text-lg">
+                    {month}
+                    {isActive && (
+                      <span className="ml-2 text-xs font-normal text-menstrual/80">Ongoing</span>
+                    )}
+                  </p>
                   <p className="text-xs text-white/40">
                     Started {nice(cycle.start)}
                     {duration && ` · ${duration} days`}
