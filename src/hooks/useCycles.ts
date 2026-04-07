@@ -107,6 +107,10 @@ export function useCycles(defaultCycleLength = 28) {
     return getCurrentCycleDay(cycles, defaultCycleLength);
   }, [cycles, defaultCycleLength]);
 
+  const activeCycle = useMemo(() => {
+    return cycles.find(c => c.end === null) ?? null;
+  }, [cycles]);
+
   // --- Export/Import ---
 
   const exportJSON = useCallback((dayLogs?: DayLogs) => {
@@ -245,6 +249,7 @@ export function useCycles(defaultCycleLength = 28) {
 
   return {
     cycles,
+    activeCycle,
     addCycle,
     updateCycle,
     deleteCycle,

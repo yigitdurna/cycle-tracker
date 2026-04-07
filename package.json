@@ -9,7 +9,13 @@
     "type": "git",
     "url": "https://github.com/yigitdurna/cycle-vault"
   },
-  "keywords": ["pwa", "cycle-vault", "menstrual-health", "privacy", "react"],
+  "keywords": [
+    "pwa",
+    "cycle-vault",
+    "menstrual-health",
+    "privacy",
+    "react"
+  ],
   "scripts": {
     "dev": "vite --port=3000",
     "build": "vite build",
@@ -29,9 +35,11 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.14",
+    "@testing-library/react": "^16.3.2",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.0.4",
+    "happy-dom": "^20.8.9",
     "tailwindcss": "^4.1.14",
     "typescript": "~5.8.2",
     "vite": "^6.2.0",
