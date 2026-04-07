@@ -70,11 +70,11 @@ export function useCycles(defaultCycleLength = 28) {
 
   // --- CRUD ---
 
-  const addCycle = useCallback((start: string, end: string) => {
+  const addCycle = useCallback((start: string, end: string | null) => {
     persist(prev => [...prev, { start, end }]);
   }, [persist]);
 
-  const updateCycle = useCallback((oldStart: string, newStart: string, newEnd: string) => {
+  const updateCycle = useCallback((oldStart: string, newStart: string, newEnd: string | null) => {
     persist(prev => prev.map(c =>
       c.start === oldStart ? { start: newStart, end: newEnd } : c
     ));
@@ -82,6 +82,12 @@ export function useCycles(defaultCycleLength = 28) {
 
   const deleteCycle = useCallback((start: string) => {
     persist(prev => prev.filter(c => c.start !== start));
+  }, [persist]);
+
+  const endCycle = useCallback((end: string) => {
+    persist(prev => prev.map(c =>
+      c.end === null ? { ...c, end } : c
+    ));
   }, [persist]);
 
   const clearAll = useCallback(() => {
@@ -253,6 +259,7 @@ export function useCycles(defaultCycleLength = 28) {
     addCycle,
     updateCycle,
     deleteCycle,
+    endCycle,
     clearAll,
     todayPhase,
     todayUIPhase,

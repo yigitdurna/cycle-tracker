@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, beforeEach } from 'vitest';
-import { renderHook } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useCycles } from '../useCycles';
 
 const STORAGE_KEY = 'cycle-tracker-calendar-v4';
@@ -44,5 +44,30 @@ describe('activeCycle', () => {
     ]));
     const { result } = renderHook(() => useCycles());
     expect(result.current.activeCycle).toEqual({ start: '2026-04-01', end: null });
+  });
+});
+
+describe('addCycle with null end', () => {
+  it('creates a cycle with null end date', () => {
+    const { result } = renderHook(() => useCycles());
+    act(() => {
+      result.current.addCycle('2026-04-07', null);
+    });
+    expect(result.current.activeCycle).toEqual({ start: '2026-04-07', end: null });
+    expect(result.current.cycles).toHaveLength(1);
+  });
+});
+
+describe('endCycle', () => {
+  it('sets end date on the active cycle', () => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([
+      { start: '2026-04-01', end: null },
+    ]));
+    const { result } = renderHook(() => useCycles());
+    act(() => {
+      result.current.endCycle('2026-04-05');
+    });
+    expect(result.current.activeCycle).toBeNull();
+    expect(result.current.cycles[0].end).toBe('2026-04-05');
   });
 });

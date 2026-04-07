@@ -88,7 +88,7 @@ export default function App() {
     setLogSheetOpen(true);
   };
 
-  const handleLogSave = (start: string, end: string) => {
+  const handleLogSave = (start: string, end: string | null) => {
     if (editingCycle) {
       updateCycle(editingCycle.start, start, end);
     } else {
