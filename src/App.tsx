@@ -32,9 +32,11 @@ export default function App() {
 
   const {
     cycles,
+    activeCycle,
     addCycle,
     updateCycle,
     deleteCycle,
+    endCycle,
     clearAll,
     todayPhase,
     todayUIPhase,
@@ -155,6 +157,11 @@ export default function App() {
               hasEnoughData={hasEnoughData}
               getPhaseDescription={getPhaseDescription}
               customCycleLength={customCycleLength ?? 28}
+              activeCycle={activeCycle}
+              onEndCycle={() => {
+                setEditingCycle(null);
+                setLogSheetOpen(true);
+              }}
             />
           )}
 
@@ -209,7 +216,12 @@ export default function App() {
       <LogPeriodSheet
         open={logSheetOpen}
         editingCycle={editingCycle}
+        activeCycle={activeCycle}
         onSave={handleLogSave}
+        onEndCycle={(end) => {
+          endCycle(end);
+          setLogSheetOpen(false);
+        }}
         onClose={() => { setLogSheetOpen(false); setEditingCycle(null); }}
       />
     </div>

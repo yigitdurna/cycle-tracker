@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { Calendar as CalendarIcon, Droplets } from 'lucide-react';
 import { CycleRing } from '../components/CycleRing';
+import { ActivePeriodBanner } from '../components/ActivePeriodBanner';
 import { StatCard } from '../components/StatCard';
 import { PhaseCard } from '../components/PhaseCard';
 import { SymptomPills } from '../components/SymptomPills';
@@ -23,9 +24,11 @@ interface HomeViewProps {
   hasEnoughData: boolean;
   getPhaseDescription: (phase: CyclePhase) => string | null;
   customCycleLength: number;
+  activeCycle: Cycle | null;
+  onEndCycle: () => void;
 }
 
-export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, todayInsights, insights, hasEnoughData, getPhaseDescription, customCycleLength }: HomeViewProps) {
+export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycles, todayLog, onUpdateLog, todayInsights, insights, hasEnoughData, getPhaseDescription, customCycleLength, activeCycle, onEndCycle }: HomeViewProps) {
   const stats = getCycleStats(cycles, customCycleLength);
   const totalDays = stats?.med ?? customCycleLength;
   const displayDay = cycleDay ?? 1;
@@ -51,6 +54,10 @@ export function HomeView({ todayPhase, todayUIPhase, nextPeriod, cycleDay, cycle
       animate={{ opacity: 1 }}
       className="flex flex-col items-center"
     >
+      {activeCycle && (
+        <ActivePeriodBanner activeCycle={activeCycle} onEndCycle={onEndCycle} />
+      )}
+
       <CycleRing day={displayDay} totalDays={totalDays} phaseInfo={todayUIPhase} />
 
       <div className="w-full flex gap-4 mt-12">
